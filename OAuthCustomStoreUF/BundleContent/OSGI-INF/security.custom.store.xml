@@ -1,0 +1,8 @@
+<component name="CustomStoreSample">
+   <implementation class="security.custom.store.CustomStoreSample"/>
+   <service>
+      <provide interface="com.ibm.websphere.security.oauth20.store.OAuthStore"/>
+   </service>
+   <property name="service.vendor" type="String" value="IBM"/>
+   <property name="oauth.store.id" type="String" value="mongoDbStore"/>
+</component>

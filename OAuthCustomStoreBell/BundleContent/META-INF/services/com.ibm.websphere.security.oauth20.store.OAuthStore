@@ -1,0 +1,2 @@
+#oauth.store.id=mongoDbStore
+security.custom.store.CustomStoreSample
