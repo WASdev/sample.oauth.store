@@ -51,21 +51,21 @@ INCOMPLETE: Setup instructions:
       - Run with Bell, add `<feature>bells-1.0</feature>`
    - Add libraries
       -Library for Bell
-``` 
-<library id="customStoreLib">
+      ``` 
+      <library id="customStoreLib">
         <fileset dir="${wlp.user.dir}/shared" includes="security.custom.store.bell_1.0.0.201812031435.jar,mongo-java-driver-2.14.2.jar"/>
-    </library>
-```
+      </library>
+      ```
    - For Bell implementation, add Bell tag:
 `<bell libraryRef="customStoreLib" service="com.ibm.websphere.security.oauth20.store.OAuthStore" />`
    - Add oauthProvider:
-```
-<oauthProvider id="OAuthConfig" filter="request-url%=ssodemo" oauthOnly="false">
+   ```
+   <oauthProvider id="OAuthConfig" filter="request-url%=ssodemo" oauthOnly="false">
 		<customStore storeId="mongoDbStore" cleanupExpiredInterval="15"/>
 		<autoAuthorizeClient>dclient01</autoAuthorizeClient>
 		<autoAuthorizeClient>dclient02</autoAuthorizeClient>
 	</oauthProvider>
-```
+   ```
 1. Copy the mongoDB.props to your server directory (wlp/usr/servers/server1) and update it with the correct values for your mongoDB install.
    - MongoDB standalone server tips. If installed on Windows, go to the installation location bin directory (Program Files/mongoDB/Server/versionNum)
    - Start the mongoDB server: run mongod.exe
