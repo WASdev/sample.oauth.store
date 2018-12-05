@@ -1,5 +1,3 @@
-# sample.oauth.store
-Sample implementations of the WebSphere Liberty com.ibm.websphere.security.oauth20.store.OAuthStore API, which allows a customer to implement their own persistent store for for clients, consents, and tokens.
 
 THIS IS AN UNFINISHED DRAFT
 ==========================
@@ -14,7 +12,7 @@ The projects contains a user feature and a Bell using the implementation class, 
 INCOMPLETE: Things you will need:
 ==============
 - A recent copy of the Eclipse IDE. See http://www.eclipse.org/downloads/ For example,  Eclipse Photon for Java EE Developers ( 4.8 ) https://www.eclipse.org/downloads/packages/release/photon/r/eclipse-ide-java-ee-developers
-- A compatible Websphere Developer Tools for WebSphere® Application Server Liberty -- for example, https://developer.ibm.com/wasdev/downloads/#asset/tools-IBM_Liberty_Developer_Tools_for_Eclipse_Photon  See here for general install options: https://www.ibmdw.net/wasdev/downloads/
+- A compatible Websphere Developer Tools for WebSphereÂ® Application Server Liberty -- for example, https://developer.ibm.com/wasdev/downloads/#asset/tools-IBM_Liberty_Developer_Tools_for_Eclipse_Photon  See here for general install options: https://www.ibmdw.net/wasdev/downloads/
 - An IBM Liberty Runtime at V18.0.0.4 or later.
 - A mongoDB install. See https://www.mongodb.com/
 - A mongoDB java driver.
@@ -23,7 +21,7 @@ INCOMPLETE: Setup instructions:
 ============
 1. Install Eclipse (if not installed already)
 1. Open Eclipse and create a new workspace
-1. Install Websphere Developer Tools for WebSphere® Application Server Liberty into Eclipse.
+1. Install Websphere Developer Tools for WebSphereÂ® Application Server Liberty into Eclipse.
    - In Eclipse, go to Help > Install New Software. Click Add. If you downloaded a zip file, point to the location of the zip file. Or enter the URL to the download site. Follow directions and restart eclipse.
 1. Create a WebSphere Liberty Profile runtime in Eclipse
    - In Eclipse, go to Window > Preferences > Server > Runtime Environments > Add > IBM > Liberty Runtime. Check the "Create a new local server" box.
