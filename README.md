@@ -67,7 +67,13 @@ INCOMPLETE: Setup instructions:
 	</oauthProvider>
 ```
 1. Copy the mongoDB.props to your server directory (wlp/usr/servers/server1) and update it with the correct values for your mongoDB install.
-
+   - MongoDB standalone server tips. If installed on Windows, go to the installation location bin directory (Program Files/mongoDB/Server/versionNum)
+   - Start the mongoDB server: run mongod.exe
+   - Access the mongoDB CLI: run mongo.exe
+   - In the CLI window opened by mongo.exe, create the database and a user (replace values as needed).
+      - Create a database named default: use default
+      - Create a user named testUser and a pwd of fancyPassword: db.createUser( {    user: "testUser",    pwd: "fancyPassword",    roles: [      { role: "readWrite", db: "default" }    ]  } )
+   - Use the database name, user, password and port for your database to update mongoDB.props.
 
 
 
