@@ -15,7 +15,7 @@ INCOMPLETE: Things you will need:
 - A compatible Websphere Developer Tools for WebSphere® Application Server Liberty -- for example, https://developer.ibm.com/wasdev/downloads/#asset/tools-IBM_Liberty_Developer_Tools_for_Eclipse_Photon  See here for general install options: https://www.ibmdw.net/wasdev/downloads/
 - An IBM Liberty Runtime at V18.0.0.4 or later.
 - A mongoDB install. See https://www.mongodb.com/
-- A mongoDB java driver.
+- A mongoDB java driver. See https://mongodb.github.io/mongo-java-driver/. At the time of writing: https://oss.sonatype.org/content/repositories/releases/org/mongodb/mongodb-driver-legacy/3.9.1/
 
 INCOMPLETE: Setup instructions:
 ============
