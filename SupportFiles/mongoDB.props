@@ -1,0 +1,9 @@
+#Optional properties file for OAuthCustomStore sample
+#Place in the server directory. Example: wlp/usr/servers/server1
+#UID is appended to the collection names used in the OAuthCustomStore
+DBNAME:default
+HOST:localhost
+PWD:password
+PORT:27018
+USER:user
+UID:testTables
