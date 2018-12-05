@@ -30,7 +30,7 @@ INCOMPLETE: Setup instructions:
 1. Bring down the sample projects with git: `git clone https://github.com/WASdev/sample.oauth.store`
 1. Import sample projects into Eclipse. In your Eclipse workspace go to, File > Import > Existing projects into workspace. Select  OAuthCustomStoreUF (User Feature example) and/or OAuthCustomStoreBell (Bell example)
 1. Add the mongoDB java driver to the class path for the project. Right click on  OAuthCustomStoreUF and/or OAuthCustomStoreBell. Select Java Build Path > Libraries tab > Add external jar. Select your mongoDB java driver jar.
-1. Pre-18.0.0.4 GA: Add the com.ibm.ws.security.oauth.*.jar to the class path for the project. Right click on  OAuthCustomStoreUF and/or OAuthCustomStoreBell. Select Java Build Path > Libraries tab > Add external jar. Navigate to your liberty install and add wlp/lib/com.ibm.ws.security.oauth.*.jar.
+1. Pre-18.0.0.4 GA: Add the com.ibm.ws.security.oauth jar to the class path for the project. Right click on  OAuthCustomStoreUF and/or OAuthCustomStoreBell. Select Java Build Path > Libraries tab > Add external jar. Navigate to your liberty install and add wlp/lib/com.ibm.ws.security.oauth jar.
 1. Set up your Target Platform: Windows > Preferences > Plug-in Development > Target Platform, and select Liberty.
 1. Create jar to install on server
    - Create User Feature jar : Right click on the OAuthCustomStoreUF project and select Export  > OSGI Bundle or Fragment. Select a location to save the jar.
