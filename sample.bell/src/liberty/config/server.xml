@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<server description="new server">
+
+    <!-- Enable features -->
+    <featureManager>
+      <feature>jsp-2.3</feature>
+      <feature>oauth-2.0</feature>
+      <feature>bells-1.0</feature>
+    </featureManager>
+
+    <!-- To access this server from a remote client add a host attribute to the following element, e.g. host="*" -->
+    <httpEndpoint id="defaultHttpEndpoint"
+                  httpPort="9080"
+                  httpsPort="9443" />
+
+    <!-- 
+	 Create a shared library that includes the JAR that contains the OAuthStore implementation
+	 and any runtime dependencies. Our sample build copied all of the JARs into a single directory
+	 so we will point to that directory.
+    -->    
+    <library id="customStoreLib">
+      <fileset dir="${wlp.user.dir}/shared/resources/libs" includes="*.jar"/>
+    </library>
+
+    <!--
+	Create the BELL using the shared library that contains the OAuthStore implementation
+	as well as the runtime dependencies.
+    -->
+    <bell libraryRef="customStoreLib" />
+    
+    <oauthProvider
+	id="OAuthConfig"
+	filter="request-url%=ssodemo"
+	oauthOnly="false">
+
+      <!--  
+           Configure the customStore to use the implementation that is loaded in the BELL. This
+           requires that the 'storeId' attribute value matches the 'oauth.store.id' property that
+           was set for that implementation in the provider configuration file in the JAR that 
+           contains the OAuthStore implementation.
+
+           We set a short cleanupExpiredInterval so that automated cleanup of expired tokens occurs
+           in short intervals. This is a *very* short interval and is for demonstration purposes only.
+           Production servers would likely not benefit froms such a short interval.	   
+      -->
+      <customStore storeId="mongoDbStore" cleanupExpiredInterval="30"/>
+
+      <autoAuthorizeClient>dclient01</autoAuthorizeClient>
+      <autoAuthorizeClient>dclient02</autoAuthorizeClient>
+    </oauthProvider>
+        
+    <oauth-roles>
+      <authenticated>
+	<user>testuser</user>
+      </authenticated>
+    </oauth-roles>
+
+    <basicRegistry id="basic" realm="BasicRealm">
+      <user name="testuser" password="testuserpwd" />
+    </basicRegistry>
+
+    <webAppSecurity allowFailOverToBasicAuth="true" />
+
+    <!--
+	Enable trace for security.
+    -->
+    <logging traceSpecification="*=info:com.ibm.ws.security.*=all:com.ibm.websphere.security.*=all"/>
+</server>

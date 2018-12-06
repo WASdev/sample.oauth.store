@@ -1,0 +1,24 @@
+group = 'security.store.sample'
+version = '1.0'
+description = "Liberty OAuthStore Sample repo"
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+subprojects {
+    apply plugin: 'java'
+    group = 'security.custom.store'
+    version = '1.0'
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+    tasks.withType(JavaCompile) {
+        options.encoding = 'UTF-8'
+    }
+}

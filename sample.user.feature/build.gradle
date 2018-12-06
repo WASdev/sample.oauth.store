@@ -1,0 +1,135 @@
+apply plugin: 'liberty'
+
+description = "Liberty OAuthStore User Feature Sample repo"
+jar.baseName = 'security.custom.store'
+
+def wlpRoot = "${buildDir}/wlp"
+def wlpServerName = "server1"
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'net.wasdev.wlp.gradle.plugins:liberty-gradle-plugin:2.4.+'
+    }
+}
+
+repositories {
+    mavenCentral()
+
+    // TODO: Can remove this after 18004 is published to maven central.
+    flatDir {
+        dirs "${wlpRoot}/dev/api/ibm/"
+    }
+}
+
+dependencies {
+    compile 'org.mongodb:mongodb-driver-legacy:3.9.1'
+
+// TODO Can remove the first line and uncomment out the second when 18004 is published to maven central.
+    compileOnly name: 'com.ibm.websphere.appserver.api.oauth_1.2.23'
+//    compileOnly group: 'com.ibm.websphere.appserver.features', name: 'oauth-2.0', version: '18.0.0.4'
+
+//
+// The ci.gradle doc says this should grab and install the feature, but it doesn't work. Maybe b/c I am using the beta?
+//
+//    libertyFeature 'com.ibm.websphere.appserver.features:oauth-2.0:18.0.0.4'
+//    libertyRuntime group: 'io.openliberty', name: 'openliberty-runtime', version: '[18.0.0.4,)'
+}
+
+ext {
+    httpPort = 8080
+    httpsPort = 8443
+}
+
+liberty {
+    server {
+        /* Install all features configured in the server.xml. */
+        features {
+            acceptLicense = true
+        }
+
+        name = "${wlpServerName}"
+        bootstrapProperties = ['httpPort': httpPort, 'httpsPort': httpsPort]
+        configDirectory = file('src/liberty/config')
+    }
+
+    install {
+        // TODO: Run with the publicly available November 2018 beta for now.
+        runtimeUrl = "https://public.dhe.ibm.com/ibmdl/export/pub/software/websphere/wasdev/downloads/wlp/beta/wlp-beta-2018.11.0.0.zip"
+    }
+}
+
+libertyStart.doFirst {
+    /*
+     * Copy the MongoDB properties file to the server.
+     */
+    copy {
+        from "${rootDir}/SupportFiles/mongoDB.props"
+        into "${wlpRoot}/usr/servers/${wlpServerName}"
+    }
+}
+
+jar {
+    /*
+     * Use our manifest and update the classpath for the bundle to include any runtime dependencies.
+     */
+    manifest {
+    	from(['src/main/resources/META-INF/MANIFEST.MF'])
+        attributes 'Bundle-ClassPath' : '.,' + configurations.runtime.collect { 'lib/' + it.getName() }.join(',')
+    }
+
+    /*
+     * Include the runtime dependencies in the JAR's 'lib' directory.
+     */
+    into('lib') {
+        from configurations.runtime
+    }
+}
+
+jar.doLast {
+
+    /*
+     * Copy the user feature JAR and the feature manifest to the Liberty
+     * extensions directory. Replace the '-' with a '_' as OSGi expects
+     * an underscore in the filename for the bundle JAR.
+     */
+    copy {
+        from "${jar.archivePath}"
+        into "${wlpRoot}/usr/extension/lib"
+	rename '(.*)-(.*)', '$1_$2'
+    }
+    copy {
+        from "${projectDir}/resources/customStoreSample-1.0.mf"
+        into "${wlpRoot}/usr/extension/lib/features"
+    }
+
+}
+
+/*
+ * Install any necessary features that weren't installed in the beta.
+ *
+ * TODO: This can be removed after the feature install of the Liberty gradle plugin works.
+ */
+installLiberty.doLast {
+    exec {
+        commandLine "${wlpRoot}/bin/installUtility", "install", "oauth-2.0"
+	ignoreExitValue = true
+    }
+}
+
+// TODO: Need the Liberty install for the OAuthStore API. Can remove when 18004 is published to maven central
+compileJava.dependsOn 'installLiberty'
+
+/*
+ * Targets for starting and stopping the Liberty server.
+ */
+clean.dependsOn 'libertyStop'
+libertyPackage.dependsOn 'libertyStop'
+libertyStart.dependsOn 'libertyStop'
+libertyStart.dependsOn 'jar'
+libertyRun.dependsOn 'libertyStop'
+
+task start { dependsOn 'libertyStart' }
+task stop  { dependsOn 'libertyStop' }
