@@ -17,7 +17,7 @@ Quick Start
 
 1. Bring down the sample projects with git: `git clone https://github.com/WASdev/sample.oauth.store`
 
-2. To build and start a server running one of the custom OAuthStore samples, run on of the following commands:
+1. To build and start a server running one of the custom OAuthStore samples, run on of the following commands:
 
     > ./gradlew sample.bell:start
 
@@ -27,71 +27,33 @@ Quick Start
 
    - Pre-GA: For Windows, edit the build.gradle file and change `commandLine "${wlpRoot}/bin/installUtility"` to commandLine `"${wlpRoot}/bin/installUtility.bat"` (add the .bat).
 
-INCOMPLETE: Things you will need:
+Develop in Eclipse
 ==============
-- A recent copy of the Eclipse IDE. See http://www.eclipse.org/downloads/ For example,  Eclipse Photon for Java EE Developers ( 4.8 ) https://www.eclipse.org/downloads/packages/release/photon/r/eclipse-ide-java-ee-developers
-- A compatible Websphere Developer Tools for WebSphere® Application Server Liberty -- for example, https://developer.ibm.com/wasdev/downloads/#asset/tools-IBM_Liberty_Developer_Tools_for_Eclipse_Photon  See here for general install options: https://www.ibmdw.net/wasdev/downloads/
-- An IBM Liberty Runtime at V18.0.0.4 or later.
-- A mongoDB install. See https://www.mongodb.com/
-- A mongoDB java driver. See https://mongodb.github.io/mongo-java-driver/. At the time of writing, to get jars manually, you need three --  https://oss.sonatype.org/content/repositories/releases/org/mongodb/mongodb-driver-legacy/3.9.1/ , https://oss.sonatype.org/content/repositories/releases/org/mongodb/mongodb-driver-core/3.9.1/ and https://oss.sonatype.org/content/repositories/releases/org/mongodb/bson/3.9.1/
+1. If you did not do the quick start steps, bring down the sample projects with git: `git clone https://github.com/WASdev/sample.oauth.store`
 
-INCOMPLETE: Setup instructions:
-============
-1. Install Eclipse (if not installed already)
+1. Generate the eclipse artifacts in the bell and/or user feature projects. Run
+    > ./gradlew sample.bell:eclipse
+
+    OR
+
+    > ./gradlew sample.user.feature:eclipse
+
+1. Acquire and install an Eclipse IDE. See http://www.eclipse.org/downloads/ For example,  Eclipse Photon for Java EE Developers ( 4.8 ) https://www.eclipse.org/downloads/packages/release/photon/r/eclipse-ide-java-ee-developers
+
 1. Open Eclipse and create a new workspace
-1. Install Websphere Developer Tools for WebSphere® Application Server Liberty into Eclipse.
-   - In Eclipse, go to Help > Install New Software. Click Add. If you downloaded a zip file, point to the location of the zip file. Or enter the URL to the download site. Follow directions and restart eclipse.
-1. Create a WebSphere Liberty Profile runtime in Eclipse
-   - In Eclipse, go to Window > Preferences > Server > Runtime Environments > Add > IBM > Liberty Runtime. Optionally check the "Create a new local server" box.
-   - Click next
-   -  Point to your Liberty 18.0.0.4 directory.
-1. Bring down the sample projects with git: `git clone https://github.com/WASdev/sample.oauth.store`
-1. Import sample projects into Eclipse as existing projects. In your Eclipse workspace go to, File > Import > General > Existing projects into workspace. Select  OAuthCustomStoreUF (User Feature example) and/or OAuthCustomStoreBell (Bell example)
-1. Add the mongoDB java driver(s) to the class path for the project. Right click on  OAuthCustomStoreUF and/or OAuthCustomStoreBell. Select Java Build Path > Libraries tab > Add external jar. Select your mongoDB java driver jar(s).
-1. Pre-18.0.0.4 GA: Add the com.ibm.ws.security.oauth jar to the class path for the project. Right click on  OAuthCustomStoreUF and/or OAuthCustomStoreBell. Select Java Build Path > Libraries tab > Add external jar. Navigate to your liberty install and add wlp/lib/com.ibm.ws.security.oauth jar.
-1. Set up your Target Platform: Windows > Preferences > Plug-in Development > Target Platform, and select Liberty.
-1. Create jar to install on server
-   - Create User Feature jar : Right click on the OAuthCustomStoreUF project and select Export  > OSGI Bundle or Fragment. Select a location to save the jar.
-   - Create Bell jar: Right click on the OAuthCustomStoreBell project and select Export  > OSGI Bundle or Fragment. Select a location to save the jar. NOTE: Not working correctly on the moment, working on resolving.
-1. Create a new Liberty server. In this example, it will be referenced as server1.
-1. Copy artifacts to your liberty install
-   - User feature
-      - Copy user feature jar you created to usr/extensions/lib (create if it doesn't exist).. 
-      - Copy customStoreSample-1.0.mf (provided in the SupportFiles directory) to usr/extensions/lib/features (create if it doesn't exist) .
-      - Copy the mongoDB driver jar to ${shared.config.dir}/lib/global (create if doesn't exist) to use as a global library. You could also package it as part of the user feature.
-   - Bell
-      - Copy bell jar you created to the ${shared.config.dir} directory (wlp/usr/shared)
-      - Copy the mongoDB driver jar to the ${shared.config.dir} directory (wlp/usr/shared). If you select a different location, change the server.xml to point to the correct location for the mongoDB driver.
-1. Set up your server. Edit your server.xml and add the following features:
-   - Add features to `<featureManager>` tag
-       - `<feature>oauth-2.0</feature>`
-      - For User Feature, add add `<feature>usr:customStoreSample-1.0</feature>`
-      - Run with Bell, add `<feature>bells-1.0</feature>`
-   - Add libraries
-      -Library for Bell
-      ``` 
-      <library id="customStoreLib">
-        <fileset dir="${wlp.user.dir}/shared" includes="security.custom.store.bell_1.0.0.201812031435.jar,mongo-java-driver-2.14.2.jar"/>
-      </library>
-      ```
-   - For Bell implementation, add Bell tag:
-`<bell libraryRef="customStoreLib" service="com.ibm.websphere.security.oauth20.store.OAuthStore" />`
-   - Add oauthProvider:
-   ```
-   <oauthProvider id="OAuthConfig" filter="request-url%=ssodemo" oauthOnly="false">
-		<customStore storeId="mongoDbStore" cleanupExpiredInterval="15"/>
-		<autoAuthorizeClient>dclient01</autoAuthorizeClient>
-		<autoAuthorizeClient>dclient02</autoAuthorizeClient>
-	</oauthProvider>
-   ```
-1. Copy the mongoDB.props to your server directory (wlp/usr/servers/server1) and update it with the correct values for your mongoDB install.
-   - MongoDB standalone server tips. If installed on Windows, go to the installation location bin directory (Program Files/mongoDB/Server/versionNum)
-   - Start the mongoDB server: run mongod.exe
-   - Access the mongoDB CLI: run mongo.exe
-   - In the CLI window opened by mongo.exe, create the database and a user (replace values as needed).
-      - Create a database named default: use default
-      - Create a user named testUser and a pwd of fancyPassword: db.createUser( {    user: "testUser",    pwd: "fancyPassword",    roles: [      { role: "readWrite", db: "default" }    ]  } )
-   - Use the database name, user, password and port for your database to update mongoDB.props.
+
+1. Import sample projects into Eclipse as existing projects. In your Eclipse workspace go to, File > Import > General > Existing projects into workspace. Select sample.user.feature or sample.bell
+
+
+Connecting to your mongoDB database with customized configuration
+=================================================================
+1. To change the database name, host or port
+   - Done building? Update the mongoDB.props in your server directory. Update the properties and restart the server.
+   - Continuing to make changes and doing builds? Update the mongoDB.props in the Support Files directory. Do a gradlew build on the project to copy it over and restart.
+
+1. Add a user and pwd option.
+   - Uncomment the "USER" and "PWD" options in the mongoDB.props. Add your server's user/pwd.
+
 
 
 
