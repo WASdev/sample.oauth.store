@@ -1,4 +1,6 @@
 apply plugin: 'liberty'
+apply plugin: 'eclipse'
+
 
 description = "Liberty OAuthStore User Feature Sample repo"
 jar.baseName = 'security.custom.store'
