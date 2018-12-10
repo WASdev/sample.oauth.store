@@ -21,29 +21,28 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.UnknownHostException;
 import java.nio.charset.Charset;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashSet;
-import java.util.List;
+
+import org.bson.Document;
 
 import com.ibm.websphere.security.oauth20.store.OAuthClient;
 import com.ibm.websphere.security.oauth20.store.OAuthConsent;
 import com.ibm.websphere.security.oauth20.store.OAuthStore;
 import com.ibm.websphere.security.oauth20.store.OAuthStoreException;
 import com.ibm.websphere.security.oauth20.store.OAuthToken;
-import com.mongodb.BasicDBObject;
-import com.mongodb.DB;
-import com.mongodb.DBCollection;
-import com.mongodb.DBCursor;
-import com.mongodb.DBObject;
-import com.mongodb.MongoClient;
-import com.mongodb.MongoClientOptions;
+import com.mongodb.MongoClientSettings;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
-import com.mongodb.WriteResult;
+import com.mongodb.client.FindIterable;
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoCursor;
+import com.mongodb.client.MongoDatabase;
 
 /**
  * The main purpose of this sample is to demonstrate the use of a CustomStore
@@ -57,17 +56,17 @@ import com.mongodb.WriteResult;
 public class CustomStoreSample implements OAuthStore {
 
 	public final static String MONGO_PROPS_FILE = "mongoDB.props";
-	private String dbName = "default";
+	private String dbName = "oauthSample";
 	private String dbHost = "localhost";
-	private String dbUser = "user";
-	private String dbPwd = "password";
+	private String dbUser = null;
+	private String dbPwd = null;
 	private int dbPort = 27017;
-	String uid = "defaultUID";
+	boolean loadedPropsFile = false;
 
-	private DB db = null;
-	private DBCollection clientCollection = null;
-	private DBCollection tokenCollection = null;
-	private DBCollection consentCollection = null;
+	private MongoDatabase db = null;
+	private MongoCollection<Document> clientCollection = null;
+	private MongoCollection<Document> tokenCollection = null;
+	private MongoCollection<Document> consentCollection = null;
 
 	// Collection types in the database
 	static String OAUTHCLIENT = "OauthClient";
@@ -109,54 +108,56 @@ public class CustomStoreSample implements OAuthStore {
 	 *
 	 * @return
 	 */
-	private synchronized DB getDB() {
+	private synchronized MongoDatabase getDB() {
 		if (db == null) {
 
 			getDatabaseConfig();
 
 			MongoClient mongoClient = null;
-			//			try {
-				System.out.println("CustomStoreSample connecting to the " + dbName + " database at " + dbHost + ":"
-						+ dbPort + " using table modifier " + uid);
-				List<MongoCredential> credentials = Collections.emptyList();
-				MongoCredential credential = MongoCredential.createCredential(dbUser, dbName, dbPwd.toCharArray());
-				credentials = Collections.singletonList(credential);
-				MongoClientOptions.Builder optionsBuilder = new MongoClientOptions.Builder().connectTimeout(30000);
-				MongoClientOptions clientOptions = optionsBuilder.build();
-				mongoClient = new MongoClient(new ServerAddress(dbHost, dbPort), credentials, clientOptions);
-				db = mongoClient.getDB(dbName);
-				System.out.println("CustomStoreSample connected to the database");
-				OAUTHCLIENT = OAUTHCLIENT + uid;
-				OAUTHTOKEN = OAUTHTOKEN + uid;
-				OAUTHCONSENT = OAUTHCONSENT + uid;
-				//			} catch (UnknownHostException e) {
-				//				System.out.println("CustomStoreSample failed connecting to the database " + e);
-				//				e.printStackTrace();
-				//				throw new IllegalStateException("CustomStoreSample Database is not connected at " + dbHost + ":" + dbPort
-				//						+ ", cannot process requests. Failure is " + e, e);
-				//			}
+
+			System.out
+			.println("CustomStoreSample connecting to the " + dbName + " database at " + dbHost + ":" + dbPort);
+
+			if (loadedPropsFile) {
+				MongoClientSettings settings = null;
+				if (dbUser != null && dbPwd != null) {
+					MongoCredential credential = MongoCredential.createCredential(dbUser, dbName, dbPwd.toCharArray());
+					// Add any additional appropriate connection settings
+					settings = MongoClientSettings.builder().credential(credential).applyToClusterSettings(
+							builder -> builder.hosts(Arrays.asList(new ServerAddress(dbHost, dbPort)))).build();
+				} else {
+					// Add any additional appropriate connection settings
+					settings = MongoClientSettings.builder().applyToClusterSettings(
+							builder -> builder.hosts(Arrays.asList(new ServerAddress(dbHost, dbPort)))).build();
+				}
+				mongoClient = MongoClients.create(settings);
+			} else {
+				mongoClient = MongoClients.create();
+			}
+			db = mongoClient.getDatabase(dbName);
+			System.out.println("CustomStoreSample connected to the database " + dbName);
+
 		}
 
-		
 		return db;
 
 	}
 
-	private DBCollection getClientCollection() {
+	private MongoCollection<Document> getClientCollection() {
 		if (clientCollection == null) {
 			clientCollection = getDB().getCollection(OAUTHCLIENT);
 		}
 		return clientCollection;
 	}
 
-	private DBCollection getTokenCollection() {
+	private MongoCollection<Document> getTokenCollection() {
 		if (tokenCollection == null) {
 			tokenCollection = getDB().getCollection(OAUTHTOKEN);
 		}
 		return tokenCollection;
 	}
 
-	private DBCollection getConsentCollection() {
+	private MongoCollection<Document> getConsentCollection() {
 		if (consentCollection == null) {
 			consentCollection = getDB().getCollection(OAUTHCONSENT);
 		}
@@ -201,35 +202,33 @@ public class CustomStoreSample implements OAuthStore {
 							dbPort = Integer.parseInt(prop[1]);
 						} else if (prop[0].equals("USER")) {
 							dbUser = prop[1];
-						} else if (prop[0].equals("UID")) {
-							uid = prop[1];
 						} else {
 							System.out.println("CustomStoreSample Unexpected property in " + MONGO_PROPS_FILE + ": " + prop[0]);
 						}
 					}
 				}
+				loadedPropsFile = true;
 
-				System.out.println("CustomStoreSample Table mod is " + uid);
 			} finally {
 				br.close();
 			}
 		} catch (IOException e) {
-			throw new IllegalStateException("Database config could not be retrieved from " + MONGO_PROPS_FILE, e);
+			System.out.println("Database config could not be retrieved from " + MONGO_PROPS_FILE +". Using defaults.");
 		}
 	}
 
 	@Override
 	public void create(OAuthClient oauthClient) throws OAuthStoreException {
 		try {
-			DBCollection col = getClientCollection();
-			col.insert(createClientDBObjectHelper(oauthClient));
+			MongoCollection<Document> col = getClientCollection();
+			col.insertOne(createClientDBObjectHelper(oauthClient));
 		} catch (Exception e) {
 			throw new OAuthStoreException("Failed to process create on OAuthClient " + oauthClient.getClientId(), e);
 		}
 	}
 
-	private BasicDBObject createClientDBObjectHelper(OAuthClient oauthClient) {
-		BasicDBObject d = new BasicDBObject(CLIENTID, oauthClient.getClientId());
+	private Document createClientDBObjectHelper(OAuthClient oauthClient) {
+		Document d = new Document(CLIENTID, oauthClient.getClientId());
 
 		d.append(PROVIDERID, oauthClient.getProviderId());
 		d.append(CLIENTSECRET, /* PasswordUtil.passwordEncode( */oauthClient.getClientSecret()/* ) */);
@@ -242,15 +241,15 @@ public class CustomStoreSample implements OAuthStore {
 	@Override
 	public void create(OAuthToken oauthToken) throws OAuthStoreException {
 		try {
-			DBCollection col = getTokenCollection();
-			col.insert(createTokenDBObjectHelper(oauthToken));
+			MongoCollection<Document> col = getTokenCollection();
+			col.insertOne(createTokenDBObjectHelper(oauthToken));
 		} catch (Exception e) {
 			throw new OAuthStoreException("Failed to process create on OAuthToken " + oauthToken.getClientId(), e);
 		}
 	}
 
-	private BasicDBObject createTokenDBObjectHelper(OAuthToken oauthToken) {
-		BasicDBObject d = new BasicDBObject(LOOKUPKEY, oauthToken.getLookupKey());
+	private Document createTokenDBObjectHelper(OAuthToken oauthToken) {
+		Document d = new Document(LOOKUPKEY, oauthToken.getLookupKey());
 		d.append(UNIQUEID, oauthToken.getUniqueId());
 		d.append(PROVIDERID, oauthToken.getProviderId());
 		d.append(TYPE, oauthToken.getType());
@@ -271,15 +270,15 @@ public class CustomStoreSample implements OAuthStore {
 	@Override
 	public void create(OAuthConsent oauthConsent) throws OAuthStoreException {
 		try {
-			DBCollection col = getConsentCollection();
-			col.insert(createConsentDBObjectHelper(oauthConsent));
+			MongoCollection<Document> col = getConsentCollection();
+			col.insertOne(createConsentDBObjectHelper(oauthConsent));
 		} catch (Exception e) {
 			throw new OAuthStoreException("Failed to process create on OAuthConsent " + oauthConsent.getClientId(), e);
 		}
 	}
 
-	private BasicDBObject createConsentDBObjectHelper(OAuthConsent oauthConsent) {
-		BasicDBObject d = new BasicDBObject(CLIENTID, oauthConsent.getClientId());
+	private Document createConsentDBObjectHelper(OAuthConsent oauthConsent) {
+		Document d = new Document(CLIENTID, oauthConsent.getClientId());
 		d.append(USERNAME, oauthConsent.getUser());
 		d.append(SCOPE, oauthConsent.getScope());
 		d.append(RESOURCE, oauthConsent.getResource());
@@ -292,10 +291,11 @@ public class CustomStoreSample implements OAuthStore {
 	@Override
 	public OAuthClient readClient(String providerId, String clientId) throws OAuthStoreException {
 		try {
-			DBCollection col = getClientCollection();
-			BasicDBObject d = new BasicDBObject(CLIENTID, clientId);
+			MongoCollection<Document> col = getClientCollection();
+			Document d = new Document(CLIENTID, clientId);
 			d.append(PROVIDERID, providerId);
-			DBObject dbo = col.findOne(d);
+			FindIterable<Document> findResult = col.find(d).limit(1);
+			Document dbo = findResult.first();
 			if (dbo == null) {
 				System.out.println("CustomStoreSample readClient Did not find clientId " + clientId + " under " + providerId);
 				return null;
@@ -309,7 +309,7 @@ public class CustomStoreSample implements OAuthStore {
 		}
 	}
 
-	private OAuthClient createOAuthClientHelper(DBObject dbo) {
+	private OAuthClient createOAuthClientHelper(Document dbo) {
 		return new OAuthClient((String) dbo.get(PROVIDERID), (String) dbo.get(CLIENTID), (String) dbo.get(CLIENTSECRET),
 				(String) dbo.get(DISPLAYNAME), (boolean) dbo.get(ENABLED), (String) dbo.get(METADATA));
 	}
@@ -319,22 +319,26 @@ public class CustomStoreSample implements OAuthStore {
 		Collection<OAuthClient> results = null;
 
 		try {
-			DBCollection col = getClientCollection();
+			MongoCollection<Document> col = getClientCollection();
 
-			DBCursor cursor = null;
+			FindIterable<Document> findResult = null;
 			if (attribute == null || attribute.isEmpty()) {
-				cursor = col.find(new BasicDBObject(PROVIDERID, providerId));
+				findResult = col.find(new Document(PROVIDERID, providerId));
 			} else {
 				System.out.println("CustomStoreSample Attribute on readAllClients not implemented");
 				// TODO Need to create query to check for all clients that
 				// contain 'attribute' in metadata.
 			}
 
-			if (cursor != null && cursor.size() > 0) {
-				results = new HashSet<OAuthClient>();
-				while (cursor.hasNext()) {
-					DBObject dbo = cursor.next();
-					results.add(createOAuthClientHelper(dbo));
+			if (findResult != null) {
+				MongoCursor<Document> mc = findResult.iterator();
+				if (mc.hasNext()) {
+					results = new HashSet<OAuthClient>();
+
+					while (mc.hasNext()) {
+						Document dbo = mc.next();
+						results.add(createOAuthClientHelper(dbo));
+					}
 				}
 			}
 
@@ -347,8 +351,9 @@ public class CustomStoreSample implements OAuthStore {
 	@Override
 	public OAuthToken readToken(String providerId, String lookupKey) throws OAuthStoreException {
 		try {
-			DBCollection col = getTokenCollection();
-			DBObject dbo = col.findOne(createTokenKeyHelper(providerId, lookupKey));
+			MongoCollection<Document> col = getTokenCollection();
+			FindIterable<Document> findResult = col.find(createTokenKeyHelper(providerId, lookupKey)).limit(1);
+			Document dbo = findResult.first();
 			if (dbo == null) {
 				System.out.println("CustomStoreSample readToken Did not find lookupKey " + lookupKey);
 				return null;
@@ -360,7 +365,7 @@ public class CustomStoreSample implements OAuthStore {
 		}
 	}
 
-	private OAuthToken createOAuthTokenHelper(DBObject dbo) {
+	private OAuthToken createOAuthTokenHelper(Document dbo) {
 		return new OAuthToken((String) dbo.get(LOOKUPKEY), (String) dbo.get(UNIQUEID), (String) dbo.get(PROVIDERID),
 				(String) dbo.get(TYPE), (String) dbo.get(SUBTYPE), (long) dbo.get(CREATEDAT), (int) dbo.get(LIFETIME),
 				(long) dbo.get(EXPIRES), (String) dbo.get(TOKENSTRING), (String) dbo.get(CLIENTID),
@@ -371,14 +376,15 @@ public class CustomStoreSample implements OAuthStore {
 	@Override
 	public Collection<OAuthToken> readAllTokens(String providerId, String username) throws OAuthStoreException {
 		try {
-			DBCollection col = getTokenCollection();
-			BasicDBObject d = new BasicDBObject(USERNAME, username);
+			MongoCollection<Document> col = getTokenCollection();
+			Document d = new Document(USERNAME, username);
 			d.append(PROVIDERID, providerId);
-			DBCursor result = col.find(d);
+			FindIterable<Document> findResult = col.find(d);
 			Collection<OAuthToken> collection = null;
 
+			MongoCursor<Document> result = findResult.iterator();
 			while (result.hasNext()) {
-				DBObject dbo = result.next();
+				Document dbo = result.next();
 				if (collection == null) {
 					collection = new ArrayList<OAuthToken>();
 				}
@@ -393,11 +399,11 @@ public class CustomStoreSample implements OAuthStore {
 	@Override
 	public int countTokens(String providerId, String username, String clientId) throws OAuthStoreException {
 		try {
-			DBCollection col = getTokenCollection();
-			BasicDBObject d = new BasicDBObject(USERNAME, username);
+			MongoCollection<Document> col = getTokenCollection();
+			Document d = new Document(USERNAME, username);
 			d.append(PROVIDERID, providerId);
 			d.append(CLIENTID, clientId);
-			return (int) col.count(d); // mongoDB returns as a long
+			return (int) col.countDocuments(d); // mongoDB returns as a long
 		} catch (Exception e) {
 			throw new OAuthStoreException("Failed on countTokens for " + username, e);
 		}
@@ -407,8 +413,9 @@ public class CustomStoreSample implements OAuthStore {
 	public OAuthConsent readConsent(String providerId, String username, String clientId, String resource)
 			throws OAuthStoreException {
 		try {
-			DBCollection col = getConsentCollection();
-			DBObject dbo = col.findOne(createConsentKeyHelper(providerId, username, clientId, resource));
+			MongoCollection<Document> col = getConsentCollection();
+			FindIterable<Document> findResult = col.find(createConsentKeyHelper(providerId, username, clientId, resource)).limit(1);
+			Document dbo = findResult.first();
 			if (dbo == null) {
 				System.out.println("CustomStoreSample readConsent Did not find username " + username);
 				return null;
@@ -424,8 +431,8 @@ public class CustomStoreSample implements OAuthStore {
 	@Override
 	public void update(OAuthClient oauthClient) throws OAuthStoreException {
 		try {
-			DBCollection col = getClientCollection();
-			col.update(createClientKeyHelper(oauthClient), createClientDBObjectHelper(oauthClient), false, false);
+			MongoCollection<Document> col = getClientCollection();
+			col.updateOne(createClientKeyHelper(oauthClient), createClientDBObjectHelper(oauthClient), null);
 		} catch (Exception e) {
 			throw new OAuthStoreException("Failed on update for OAuthClient for " + oauthClient.getClientId(), e);
 		}
@@ -434,8 +441,8 @@ public class CustomStoreSample implements OAuthStore {
 	@Override
 	public void update(OAuthToken oauthToken) throws OAuthStoreException {
 		try {
-			DBCollection col = getTokenCollection();
-			col.update(createTokenKeyHelper(oauthToken), createTokenDBObjectHelper(oauthToken), false, false);
+			MongoCollection<Document> col = getTokenCollection();
+			col.updateOne(createTokenKeyHelper(oauthToken), createTokenDBObjectHelper(oauthToken), null);
 		} catch (Exception e) {
 			throw new OAuthStoreException("Failed on update for OAuthToken for " + oauthToken.getClientId(), e);
 		}
@@ -444,8 +451,8 @@ public class CustomStoreSample implements OAuthStore {
 	@Override
 	public void update(OAuthConsent oauthConsent) throws OAuthStoreException {
 		try {
-			DBCollection col = getConsentCollection();
-			col.update(createConsentKeyHelper(oauthConsent), createConsentDBObjectHelper(oauthConsent), false, false);
+			MongoCollection<Document> col = getConsentCollection();
+			col.updateOne(createConsentKeyHelper(oauthConsent), createConsentDBObjectHelper(oauthConsent), null);
 		} catch (Exception e) {
 			throw new OAuthStoreException("Failed on update for OAuthConsent for " + oauthConsent.getClientId(), e);
 		}
@@ -454,8 +461,8 @@ public class CustomStoreSample implements OAuthStore {
 	@Override
 	public void deleteClient(String providerId, String clientId) throws OAuthStoreException {
 		try {
-			DBCollection col = getClientCollection();
-			WriteResult wr = col.remove(createClientKeyHelper(providerId, clientId));
+			MongoCollection<Document> col = getClientCollection();
+			col.deleteOne(createClientKeyHelper(providerId, clientId));
 			System.out.println("CustomStoreSample deleteClient requested on clientId " + clientId + " under " + providerId);
 		} catch (Exception e) {
 			throw new OAuthStoreException("Failed on delete for OAuthClient for " + clientId, e);
@@ -465,8 +472,8 @@ public class CustomStoreSample implements OAuthStore {
 	@Override
 	public void deleteToken(String providerId, String lookupKey) throws OAuthStoreException {
 		try {
-			DBCollection col = getTokenCollection();
-			col.remove(createTokenKeyHelper(providerId, lookupKey));
+			MongoCollection<Document> col = getTokenCollection();
+			col.deleteOne(createTokenKeyHelper(providerId, lookupKey));
 		} catch (Exception e) {
 			throw new OAuthStoreException("Failed on delete for OAuthToken for " + lookupKey, e);
 		}
@@ -476,13 +483,13 @@ public class CustomStoreSample implements OAuthStore {
 	public void deleteTokens(String providerId, long timestamp) throws OAuthStoreException {
 		try {
 			System.out.println("CustomStoreSample deleteTokens request for " + providerId + " expiring before " + timestamp);
-			DBCollection col = getTokenCollection();
-			System.out.println("CustomStoreSample deleteTokens before " + col.count());
-			BasicDBObject query = new BasicDBObject();
-			query.put(EXPIRES, new BasicDBObject("$lt", timestamp));
+			MongoCollection<Document> col = getTokenCollection();
+			System.out.println("CustomStoreSample deleteTokens before " + col.countDocuments());
+			Document query = new Document();
+			query.put(EXPIRES, new Document("$lt", timestamp));
 			query.put(PROVIDERID, providerId);
-			col.remove(query);
-			System.out.println("CustomStoreSample deleteTokens after " + col.count());
+			col.deleteMany(query);
+			System.out.println("CustomStoreSample deleteTokens after " + col.countDocuments());
 		} catch (Exception e) {
 			throw new OAuthStoreException("Failed on deleteTokens for time after " + timestamp, e);
 		}
@@ -492,12 +499,12 @@ public class CustomStoreSample implements OAuthStore {
 	public void deleteConsent(String providerId, String username, String clientId, String resource)
 			throws OAuthStoreException {
 		try {
-			DBCollection col = getConsentCollection();
-			BasicDBObject db = new BasicDBObject(CLIENTID, clientId);
+			MongoCollection<Document> col = getConsentCollection();
+			Document db = new Document(CLIENTID, clientId);
 			db.put(USERNAME, username);
 			db.put(PROVIDERID, providerId);
 			db.put(RESOURCE, resource);
-			col.remove(db);
+			col.deleteOne(db);
 
 		} catch (Exception e) {
 			throw new OAuthStoreException("Failed on delete for Consent for " + username, e);
@@ -508,43 +515,43 @@ public class CustomStoreSample implements OAuthStore {
 	@Override
 	public void deleteConsents(String providerId, long timestamp) throws OAuthStoreException {
 		try {
-			DBCollection col = getConsentCollection();
-			BasicDBObject query = new BasicDBObject();
-			query.put(EXPIRES, new BasicDBObject("$lt", timestamp));
+			MongoCollection<Document> col = getConsentCollection();
+			Document query = new Document();
+			query.put(EXPIRES, new Document("$lt", timestamp));
 			query.put(PROVIDERID, providerId);
-			col.remove(query);
+			col.deleteMany(query);
 		} catch (Exception e) {
 			throw new OAuthStoreException("Failed on deleteConsents for time after " + timestamp, e);
 		}
 	}
 
-	private BasicDBObject createClientKeyHelper(OAuthClient oauthClient) {
+	private Document createClientKeyHelper(OAuthClient oauthClient) {
 		return createClientKeyHelper(oauthClient.getProviderId(), oauthClient.getClientId());
 	}
 
-	private BasicDBObject createClientKeyHelper(String providerId, String clientId) {
-		BasicDBObject d = new BasicDBObject(CLIENTID, clientId);
+	private Document createClientKeyHelper(String providerId, String clientId) {
+		Document d = new Document(CLIENTID, clientId);
 		d.append(PROVIDERID, providerId);
 		return d;
 	}
 
-	private BasicDBObject createTokenKeyHelper(OAuthToken oauthToken) {
+	private Document createTokenKeyHelper(OAuthToken oauthToken) {
 		return createTokenKeyHelper(oauthToken.getProviderId(), oauthToken.getLookupKey());
 	}
 
-	private BasicDBObject createTokenKeyHelper(String providerId, String lookupKey) {
-		BasicDBObject d = new BasicDBObject(LOOKUPKEY, lookupKey);
+	private Document createTokenKeyHelper(String providerId, String lookupKey) {
+		Document d = new Document(LOOKUPKEY, lookupKey);
 		d.append(PROVIDERID, providerId);
 		return d;
 	}
 
-	private BasicDBObject createConsentKeyHelper(OAuthConsent oauthConsent) {
+	private Document createConsentKeyHelper(OAuthConsent oauthConsent) {
 		return createConsentKeyHelper(oauthConsent.getClientId(), oauthConsent.getUser(), oauthConsent.getResource(),
 				oauthConsent.getProviderId());
 	}
 
-	private BasicDBObject createConsentKeyHelper(String providerId, String username, String clientId, String resource) {
-		BasicDBObject d = new BasicDBObject(CLIENTID, clientId);
+	private Document createConsentKeyHelper(String providerId, String username, String clientId, String resource) {
+		Document d = new Document(CLIENTID, clientId);
 		d.append(USERNAME, username);
 		d.append(RESOURCE, resource);
 		d.append(PROVIDERID, providerId);

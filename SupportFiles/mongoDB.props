@@ -1,9 +1,9 @@
-#Optional properties file for OAuthCustomStore sample
-#Place in the server directory. Example: wlp/usr/servers/server1
-#UID is appended to the collection names used in the OAuthCustomStore
-DBNAME:default
+# Optional properties file for sample.oauth.store sample, loaded by the CustomStoreSample class.
+# Place in the server directory. Example: wlp/usr/servers/server1
+# Uncomment the USER and PWD lines to provide a user and password to your database
+
+DBNAME:oauthSample
 HOST:localhost
-PWD:password
-PORT:27018
-USER:user
-UID:testTables
+PORT:27017
+# USER:userName
+# PWD:userPassword
