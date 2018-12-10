@@ -9,6 +9,16 @@ This sample project provides an example implementation of com.ibm.websphere.secu
 
 The projects contains a user feature and a Bell using the implementation class, CustomStoreSample. It provides the instructions for creating a user feature and a Bell. You only need to follow the directions for one or the other.
 
+Quick Start
+===========
+To quickly start a server running one of the custom OAuthStore samples, run on of the following commands:
+
+> ./gradlew sample.bell:start
+
+OR
+
+> ./gradlew sample.user.feature:start
+
 INCOMPLETE: Things you will need:
 ==============
 - A recent copy of the Eclipse IDE. See http://www.eclipse.org/downloads/ For example,  Eclipse Photon for Java EE Developers ( 4.8 ) https://www.eclipse.org/downloads/packages/release/photon/r/eclipse-ide-java-ee-developers
