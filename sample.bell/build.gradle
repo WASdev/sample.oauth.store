@@ -25,7 +25,7 @@ repositories {
 }
 
 dependencies {
-    compile 'org.mongodb:mongodb-driver-legacy:3.9.1'
+    compile 'org.mongodb:mongodb-driver-sync:3.9.1'
 
 // TODO Can remove the first line and uncomment out the second when 18004 is published to maven central.
     compileOnly name: 'com.ibm.websphere.appserver.api.oauth_1.2.23'
