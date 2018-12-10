@@ -34,7 +34,7 @@ INCOMPLETE: Setup instructions:
 1. Set up your Target Platform: Windows > Preferences > Plug-in Development > Target Platform, and select Liberty.
 1. Create jar to install on server
    - Create User Feature jar : Right click on the OAuthCustomStoreUF project and select Export  > OSGI Bundle or Fragment. Select a location to save the jar.
-   - Create Bell jar: Right click on the OAuthCustomStoreBell project and select Export  > OSGI Bundle or Fragment. Select a location to save the jar.
+   - Create Bell jar: Right click on the OAuthCustomStoreBell project and select Export  > OSGI Bundle or Fragment. Select a location to save the jar. NOTE: Not working correctly on the moment, working on resolving.
 1. Create a new Liberty server. In this example, it will be referenced as server1.
 1. Copy artifacts to your liberty install
    - User feature
