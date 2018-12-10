@@ -49,7 +49,7 @@ Develop in Eclipse
 
 Connecting to your mongoDB database with customized configuration
 =================================================================
-The CustomStoreSample loads the information about the database from a `mongoDB.props` file. If you are done building, update the mongoDB.props in your server directory. If you are continuing to make changes and doing builds, then update the `mongoDB.props` in the Support Files directory. Do a gradlew build on the project to copy it over and restart. The `mongoDB.props` is copied over every time a build is done.
+The CustomStoreSample loads the information about the database from a `mongoDB.props` file. If you are done building, update the mongoDB.props in your server directory. If you are continuing to make changes and doing builds, then update the `mongoDB.props` in the `SupportFiles` directory. Do a gradlew build on the project to copy it over and restart. The `mongoDB.props` is copied over every time a build is done.
 
 To change the database name, host or port, edit values in the mongoDB.props file.   
 
