@@ -24,12 +24,12 @@ INCOMPLETE: Setup instructions:
 1. Install Websphere Developer Tools for WebSphere® Application Server Liberty into Eclipse.
    - In Eclipse, go to Help > Install New Software. Click Add. If you downloaded a zip file, point to the location of the zip file. Or enter the URL to the download site. Follow directions and restart eclipse.
 1. Create a WebSphere Liberty Profile runtime in Eclipse
-   - In Eclipse, go to Window > Preferences > Server > Runtime Environments > Add > IBM > Liberty Runtime. Check the "Create a new local server" box.
+   - In Eclipse, go to Window > Preferences > Server > Runtime Environments > Add > IBM > Liberty Runtime. Optionally check the "Create a new local server" box.
    - Click next
    -  Point to your Liberty 18.0.0.4 directory.
 1. Bring down the sample projects with git: `git clone https://github.com/WASdev/sample.oauth.store`
-1. Import sample projects into Eclipse. In your Eclipse workspace go to, File > Import > Existing projects into workspace. Select  OAuthCustomStoreUF (User Feature example) and/or OAuthCustomStoreBell (Bell example)
-1. Add the mongoDB java driver to the class path for the project. Right click on  OAuthCustomStoreUF and/or OAuthCustomStoreBell. Select Java Build Path > Libraries tab > Add external jar. Select your mongoDB java driver jar.
+1. Import sample projects into Eclipse as existing projects. In your Eclipse workspace go to, File > Import > General > Existing projects into workspace. Select  OAuthCustomStoreUF (User Feature example) and/or OAuthCustomStoreBell (Bell example)
+1. Add the mongoDB java driver(s) to the class path for the project. Right click on  OAuthCustomStoreUF and/or OAuthCustomStoreBell. Select Java Build Path > Libraries tab > Add external jar. Select your mongoDB java driver jar(s).
 1. Pre-18.0.0.4 GA: Add the com.ibm.ws.security.oauth jar to the class path for the project. Right click on  OAuthCustomStoreUF and/or OAuthCustomStoreBell. Select Java Build Path > Libraries tab > Add external jar. Navigate to your liberty install and add wlp/lib/com.ibm.ws.security.oauth jar.
 1. Set up your Target Platform: Windows > Preferences > Plug-in Development > Target Platform, and select Liberty.
 1. Create jar to install on server
