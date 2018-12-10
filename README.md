@@ -33,7 +33,7 @@ Develop in Eclipse
 1. If you did not do the quick start steps, bring down the sample projects with git: 
    > git clone https://github.com/WASdev/sample.oauth.store
 
-1. If you did not do the quick start steps, generate the eclipse artifacts in the bell and/or user feature projects. Run
+1. Generate the eclipse artifacts in the bell and/or user feature projects. Run
     > ./gradlew sample.bell:eclipse
 
     OR
