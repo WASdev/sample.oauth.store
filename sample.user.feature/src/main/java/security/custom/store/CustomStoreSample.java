@@ -115,7 +115,7 @@ public class CustomStoreSample implements OAuthStore {
 			getDatabaseConfig();
 
 			MongoClient mongoClient = null;
-			try {
+			//			try {
 				System.out.println("CustomStoreSample connecting to the " + dbName + " database at " + dbHost + ":"
 						+ dbPort + " using table modifier " + uid);
 				List<MongoCredential> credentials = Collections.emptyList();
@@ -129,12 +129,12 @@ public class CustomStoreSample implements OAuthStore {
 				OAUTHCLIENT = OAUTHCLIENT + uid;
 				OAUTHTOKEN = OAUTHTOKEN + uid;
 				OAUTHCONSENT = OAUTHCONSENT + uid;
-			} catch (UnknownHostException e) {
-				System.out.println("CustomStoreSample failed connecting to the database " + e);
-				e.printStackTrace();
-				throw new IllegalStateException("CustomStoreSample Database is not connected at " + dbHost + ":" + dbPort
-						+ ", cannot process requests. Failure is " + e, e);
-			}
+				//			} catch (UnknownHostException e) {
+				//				System.out.println("CustomStoreSample failed connecting to the database " + e);
+				//				e.printStackTrace();
+				//				throw new IllegalStateException("CustomStoreSample Database is not connected at " + dbHost + ":" + dbPort
+				//						+ ", cannot process requests. Failure is " + e, e);
+				//			}
 		}
 
 		
