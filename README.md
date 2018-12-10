@@ -15,7 +15,8 @@ Quick Start
    - If installed on Windows, go to the installation location bin directory (Program Files/mongoDB/Server/versionNum)
    - Start the mongoDB server: mongod.exe
 
-1. Bring down the sample projects with git: `git clone https://github.com/WASdev/sample.oauth.store`
+1. Bring down the sample projects with git: 
+   > git clone https://github.com/WASdev/sample.oauth.store
 
 1. To build and start a server running one of the custom OAuthStore samples, run on of the following commands:
 
@@ -29,9 +30,10 @@ Quick Start
 
 Develop in Eclipse
 ==============
-1. If you did not do the quick start steps, bring down the sample projects with git: `git clone https://github.com/WASdev/sample.oauth.store`
+1. If you did not do the quick start steps, bring down the sample projects with git: 
+   > git clone https://github.com/WASdev/sample.oauth.store
 
-1. Generate the eclipse artifacts in the bell and/or user feature projects. Run
+1. If you did not do the quick start steps, generate the eclipse artifacts in the bell and/or user feature projects. Run
     > ./gradlew sample.bell:eclipse
 
     OR
@@ -42,7 +44,7 @@ Develop in Eclipse
 
 1. Open Eclipse and create a new workspace
 
-1. Import sample projects into Eclipse as existing projects. In your Eclipse workspace go to, File > Import > General > Existing projects into workspace. Select sample.user.feature or sample.bell
+1. Import sample projects into Eclipse as existing projects. In your Eclipse workspace go to, File > Import > General > Existing projects into workspace. Select `sample.user.feature` or `sample.bell`.
 
 
 Connecting to your mongoDB database with customized configuration
