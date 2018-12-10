@@ -11,13 +11,21 @@ The projects contains a user feature and a Bell using the implementation class, 
 
 Quick Start
 ===========
-To quickly start a server running one of the custom OAuthStore samples, run on of the following commands:
+1. Download, install and start mongoDB. See https://www.mongodb.com/
+   - If installed on Windows, go to the installation location bin directory (Program Files/mongoDB/Server/versionNum)
+   - Start the mongoDB server: mongod.exe
 
-> ./gradlew sample.bell:start
+1. Bring down the sample projects with git: `git clone https://github.com/WASdev/sample.oauth.store`
 
-OR
+2. To build and start a server running one of the custom OAuthStore samples, run on of the following commands:
 
-> ./gradlew sample.user.feature:start
+    > ./gradlew sample.bell:start
+
+    OR
+
+    > ./gradlew sample.user.feature:start
+
+   - Pre-GA: For Windows, edit the build.gradle file and change `commandLine "${wlpRoot}/bin/installUtility"` to commandLine `"${wlpRoot}/bin/installUtility.bat"` (add the .bat).
 
 INCOMPLETE: Things you will need:
 ==============
