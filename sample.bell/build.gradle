@@ -1,4 +1,5 @@
 apply plugin: 'liberty'
+apply plugin: 'eclipse'
 
 description = "Liberty OAuthStore BELL Sample repo"
 jar.baseName = 'oauthstore-bell-sample'

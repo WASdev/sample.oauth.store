@@ -2,5 +2,6 @@
 .gradle/
 .project
 .classpath
-/bin/
+bin/
+.settings
 **/*~
