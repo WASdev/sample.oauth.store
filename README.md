@@ -27,6 +27,12 @@ Quick Start
     > ./gradlew sample.user.feature:start
 
    - Pre-GA: For Windows, edit the build.gradle file and change `commandLine "${wlpRoot}/bin/installUtility"` to commandLine `"${wlpRoot}/bin/installUtility.bat"` (add the .bat).
+   
+1. To check if your Bell or Feature loaded, check the messages.log
+   - For the Bell, check `sample.oauth.store\sample.bell\build\wlp\usr\servers\server1\logs\messages.log` for `I CustomStoreSample Bell initialized.`
+   - For the User Feature, check `sample.oauth.store\sample.user.feature\build\wlp\usr\servers\server1\logs\messages.log` for `I CustomStoreSample User Feature initialized.`
+   
+1. To check if the CustomStoreSample connected to MongoDB, check the messages.log for the following message (should appear after 30 seconds): `I Connected to the database oauthSample`
 
 Develop in Eclipse
 ==============
