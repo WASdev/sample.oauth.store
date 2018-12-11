@@ -26,6 +26,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import org.bson.Document;
 
@@ -54,6 +56,8 @@ import com.mongodb.client.MongoDatabase;
  * It uses a MongoDB back end.
  **/
 public class CustomStoreSample implements OAuthStore {
+	
+	static final Logger LOGGER = Logger.getLogger(CustomStoreSample.class.getName());
 
 	public final static String MONGO_PROPS_FILE = "mongoDB.props";
 	private String dbName = "oauthSample";
@@ -98,7 +102,7 @@ public class CustomStoreSample implements OAuthStore {
 	final static String METADATA = "METADATA";
 
 	public CustomStoreSample() {
-		System.out.println("CustomStoreSample init");
+		LOGGER.log(Level.INFO, "CustomStoreSample Bell initialized.");
 	}
 
 	/**
@@ -115,8 +119,7 @@ public class CustomStoreSample implements OAuthStore {
 
 			MongoClient mongoClient = null;
 
-			System.out
-			.println("CustomStoreSample connecting to the " + dbName + " database at " + dbHost + ":" + dbPort);
+			LOGGER.log(Level.INFO, "Connecting to the " + dbName + " database at " + dbHost + ":" + dbPort);
 
 			if (loadedPropsFile) {
 				MongoClientSettings settings = null;
@@ -135,7 +138,7 @@ public class CustomStoreSample implements OAuthStore {
 				mongoClient = MongoClients.create();
 			}
 			db = mongoClient.getDatabase(dbName);
-			System.out.println("CustomStoreSample connected to the database " + dbName);
+			LOGGER.log(Level.INFO, "Connected to the database " + dbName);
 
 		}
 
@@ -189,7 +192,7 @@ public class CustomStoreSample implements OAuthStore {
 					}
 					String[] prop = line.split(":");
 					if (prop.length != 2) {
-						System.out.println("CustomStoreSample Exception key:value syntax of properties in " + MONGO_PROPS_FILE
+						LOGGER.log(Level.WARNING, "Exception key:value syntax of properties in " + MONGO_PROPS_FILE
 								+ ", line is: " + line);
 					} else {
 						if (prop[0].equals("DBNAME")) {
@@ -203,7 +206,7 @@ public class CustomStoreSample implements OAuthStore {
 						} else if (prop[0].equals("USER")) {
 							dbUser = prop[1];
 						} else {
-							System.out.println("CustomStoreSample Unexpected property in " + MONGO_PROPS_FILE + ": " + prop[0]);
+							LOGGER.log(Level.INFO, "Unexpected property in " + MONGO_PROPS_FILE + ": " + prop[0]);
 						}
 					}
 				}
@@ -213,7 +216,7 @@ public class CustomStoreSample implements OAuthStore {
 				br.close();
 			}
 		} catch (IOException e) {
-			System.out.println("Database config could not be retrieved from " + MONGO_PROPS_FILE +". Using defaults.");
+			LOGGER.log(Level.WARNING, "Database config could not be retrieved from " + MONGO_PROPS_FILE +". Using defaults.");
 		}
 	}
 
@@ -297,11 +300,11 @@ public class CustomStoreSample implements OAuthStore {
 			FindIterable<Document> findResult = col.find(d).limit(1);
 			Document dbo = findResult.first();
 			if (dbo == null) {
-				System.out.println("CustomStoreSample readClient Did not find clientId " + clientId + " under " + providerId);
+				LOGGER.log(Level.FINEST, "readClient Did not find clientId " + clientId + " under " + providerId);
 				return null;
 			}
 			
-			System.out.println("CustomStoreSample readClient Found clientId " + clientId + " under " + providerId + " _id " + dbo.get("_id"));
+			LOGGER.log(Level.FINEST, "Found clientId " + clientId + " under " + providerId + " _id " + dbo.get("_id"));
 			return createOAuthClientHelper(dbo);
 
 		} catch (Exception e) {
@@ -325,7 +328,7 @@ public class CustomStoreSample implements OAuthStore {
 			if (attribute == null || attribute.isEmpty()) {
 				findResult = col.find(new Document(PROVIDERID, providerId));
 			} else {
-				System.out.println("CustomStoreSample Attribute on readAllClients not implemented");
+				LOGGER.log(Level.WARNING, "Attribute on readAllClients not implemented");
 				// TODO Need to create query to check for all clients that
 				// contain 'attribute' in metadata.
 			}
@@ -355,10 +358,10 @@ public class CustomStoreSample implements OAuthStore {
 			FindIterable<Document> findResult = col.find(createTokenKeyHelper(providerId, lookupKey)).limit(1);
 			Document dbo = findResult.first();
 			if (dbo == null) {
-				System.out.println("CustomStoreSample readToken Did not find lookupKey " + lookupKey);
+				LOGGER.log(Level.FINEST, "readToken Did not find lookupKey " + lookupKey);
 				return null;
 			}
-			System.out.println("CustomStoreSample readToken Found lookupKey " + lookupKey + " under " + providerId + " _id " + dbo.get("_id"));
+			LOGGER.log(Level.FINEST, "readToken Found lookupKey " + lookupKey + " under " + providerId + " _id " + dbo.get("_id"));
 			return createOAuthTokenHelper(dbo);
 		} catch (Exception e) {
 			throw new OAuthStoreException("Failed to readToken " + lookupKey, e);
@@ -417,10 +420,10 @@ public class CustomStoreSample implements OAuthStore {
 			FindIterable<Document> findResult = col.find(createConsentKeyHelper(providerId, username, clientId, resource)).limit(1);
 			Document dbo = findResult.first();
 			if (dbo == null) {
-				System.out.println("CustomStoreSample readConsent Did not find username " + username);
+				LOGGER.log(Level.FINEST, "readConsent Did not find username " + username);
 				return null;
 			}
-			System.out.println("CustomStoreSample readConsent Found clientId " + clientId + " under " + providerId + " _id " + dbo.get("_id"));
+			LOGGER.log(Level.FINEST, "readConsent Found clientId " + clientId + " under " + providerId + " _id " + dbo.get("_id"));
 			return new OAuthConsent(clientId, (String) dbo.get(USERNAME), (String) dbo.get(SCOPE), resource, providerId,
 					(long) dbo.get(EXPIRES), (String) dbo.get(PROPS));
 		} catch (Exception e) {
@@ -463,7 +466,6 @@ public class CustomStoreSample implements OAuthStore {
 		try {
 			MongoCollection<Document> col = getClientCollection();
 			col.deleteOne(createClientKeyHelper(providerId, clientId));
-			System.out.println("CustomStoreSample deleteClient requested on clientId " + clientId + " under " + providerId);
 		} catch (Exception e) {
 			throw new OAuthStoreException("Failed on delete for OAuthClient for " + clientId, e);
 		}
@@ -482,14 +484,13 @@ public class CustomStoreSample implements OAuthStore {
 	@Override
 	public void deleteTokens(String providerId, long timestamp) throws OAuthStoreException {
 		try {
-			System.out.println("CustomStoreSample deleteTokens request for " + providerId + " expiring before " + timestamp);
 			MongoCollection<Document> col = getTokenCollection();
-			System.out.println("CustomStoreSample deleteTokens before " + col.countDocuments());
+			LOGGER.log(Level.FINEST, "deleteTokens before count " + col.countDocuments());
 			Document query = new Document();
 			query.put(EXPIRES, new Document("$lt", timestamp));
 			query.put(PROVIDERID, providerId);
 			col.deleteMany(query);
-			System.out.println("CustomStoreSample deleteTokens after " + col.countDocuments());
+			LOGGER.log(Level.FINEST, "deleteTokens after count " + col.countDocuments());
 		} catch (Exception e) {
 			throw new OAuthStoreException("Failed on deleteTokens for time after " + timestamp, e);
 		}
