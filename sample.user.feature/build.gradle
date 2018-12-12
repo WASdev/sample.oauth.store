@@ -28,7 +28,10 @@ repositories {
 
 dependencies {
     compile 'org.mongodb:mongodb-driver-sync:3.9.1'
-
+    compile group: 'org.osgi', name: 'osgi_R4_core', version: '1.0' // needed for bundle Activator class
+    compile group: 'org.osgi', name: 'org.osgi.service.cm', version: '1.6.0' // needed for ManagedService/config from server.xml
+    compile group: 'javax.xml.crypto', name: 'jsr105-api', version: '1.0.1' // needed if doing authorization on MongoDB
+    
 // TODO Can remove the first line and uncomment out the second when 18004 is published to maven central.
     compileOnly name: 'com.ibm.websphere.appserver.api.oauth_1.2.23'
 //    compileOnly group: 'com.ibm.websphere.appserver.features', name: 'oauth-2.0', version: '18.0.0.4'

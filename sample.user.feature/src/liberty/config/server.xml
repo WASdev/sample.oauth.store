@@ -13,6 +13,14 @@
                   httpPort="9080"
                   httpsPort="9443" />
 
+    <!-- For the user feature, we can load the mongoDB configuration from the server.xml.
+         This is an example of passing in the databaseName and port.
+         See the security.custom.store.Activator and security.custom.store.MongoDBHelper for 
+         details on how these values are used. These keys can also be added: user="user1" password="passwordOfPower" 
+     -->
+	<customStoreMongoDBConfig databaseName="oauthSample" hostname="localhost" port="27017" />
+
+
     <oauthProvider
 	id="OAuthConfig"
 	filter="request-url%=ssodemo"
@@ -25,7 +33,7 @@
    
            We set a short cleanupExpiredInterval so that automated cleanup of expired tokens occurs
            in short intervals. This is a *very* short interval and is for demonstration purposes only.
-           Production servers would likely not benefit froms such a short interval.	   
+           Production servers would likely not benefit from such a short interval.	   
       -->
       <customStore storeId="mongoDbStore" cleanupExpiredInterval="30"/>
 
@@ -46,7 +54,7 @@
     <webAppSecurity allowFailOverToBasicAuth="true" />
 
     <!--
-	Enable trace for security.
+	Enable trace for security. The string, security.custom.store.*=all, traces the classes in the user feature.
     -->
-    <logging traceSpecification="*=info:com.ibm.ws.security.*=all:com.ibm.websphere.security.*=all"/>
+    <logging traceSpecification="*=info:com.ibm.ws.security.*=all:com.ibm.websphere.security.*=all:security.custom.store.*=all"/>
 </server>

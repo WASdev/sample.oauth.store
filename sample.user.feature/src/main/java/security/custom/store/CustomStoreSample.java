@@ -16,14 +16,7 @@
  */
 package security.custom.store;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.Charset;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.logging.Level;
@@ -36,15 +29,9 @@ import com.ibm.websphere.security.oauth20.store.OAuthConsent;
 import com.ibm.websphere.security.oauth20.store.OAuthStore;
 import com.ibm.websphere.security.oauth20.store.OAuthStoreException;
 import com.ibm.websphere.security.oauth20.store.OAuthToken;
-import com.mongodb.MongoClientSettings;
-import com.mongodb.MongoCredential;
-import com.mongodb.ServerAddress;
 import com.mongodb.client.FindIterable;
-import com.mongodb.client.MongoClient;
-import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoCursor;
-import com.mongodb.client.MongoDatabase;
 
 /**
  * The main purpose of this sample is to demonstrate the use of a CustomStore
@@ -59,15 +46,6 @@ public class CustomStoreSample implements OAuthStore {
 	
 	static final Logger LOGGER = Logger.getLogger(CustomStoreSample.class.getName());
 
-	public final static String MONGO_PROPS_FILE = "mongoDB.props";
-	private String dbName = "oauthSample";
-	private String dbHost = "localhost";
-	private String dbUser = null;
-	private String dbPwd = null;
-	private int dbPort = 27017;
-	boolean loadedPropsFile = false;
-
-	private MongoDatabase db = null;
 	private MongoCollection<Document> clientCollection = null;
 	private MongoCollection<Document> tokenCollection = null;
 	private MongoCollection<Document> consentCollection = null;
@@ -105,121 +83,28 @@ public class CustomStoreSample implements OAuthStore {
 		LOGGER.log(Level.INFO, "CustomStoreSample User Feature initialized.");
 	}
 
-	/**
-	 * Simple helper method to get a connection to mongoDB.
-	 * 
-	 * It is not a general recommendation for all CustomStore implementations.
-	 *
-	 * @return
-	 */
-	private synchronized MongoDatabase getDB() {
-		if (db == null) {
-
-			getDatabaseConfig();
-
-			MongoClient mongoClient = null;
-
-			LOGGER.log(Level.INFO, "Connecting to the " + dbName + " database at " + dbHost + ":" + dbPort);
-
-			if (loadedPropsFile) {
-				MongoClientSettings settings = null;
-				if (dbUser != null && dbPwd != null) {
-					MongoCredential credential = MongoCredential.createCredential(dbUser, dbName, dbPwd.toCharArray());
-					// Add any additional appropriate connection settings
-					settings = MongoClientSettings.builder().credential(credential).applyToClusterSettings(
-							builder -> builder.hosts(Arrays.asList(new ServerAddress(dbHost, dbPort)))).build();
-				} else {
-					// Add any additional appropriate connection settings
-					settings = MongoClientSettings.builder().applyToClusterSettings(
-							builder -> builder.hosts(Arrays.asList(new ServerAddress(dbHost, dbPort)))).build();
-				}
-				mongoClient = MongoClients.create(settings);
-			} else {
-				mongoClient = MongoClients.create();
-			}
-			db = mongoClient.getDatabase(dbName);
-			LOGGER.log(Level.INFO, "Connected to the database " + dbName);
-
-		}
-
-		return db;
-
-	}
-
 	private MongoCollection<Document> getClientCollection() {
 		if (clientCollection == null) {
-			clientCollection = getDB().getCollection(OAUTHCLIENT);
+			clientCollection = MongoDBHelper.getInstance().getDB().getCollection(OAUTHCLIENT);
 		}
 		return clientCollection;
 	}
 
 	private MongoCollection<Document> getTokenCollection() {
 		if (tokenCollection == null) {
-			tokenCollection = getDB().getCollection(OAUTHTOKEN);
+			tokenCollection = MongoDBHelper.getInstance().getDB().getCollection(OAUTHTOKEN);
 		}
 		return tokenCollection;
 	}
 
 	private MongoCollection<Document> getConsentCollection() {
 		if (consentCollection == null) {
-			consentCollection = getDB().getCollection(OAUTHCONSENT);
+			consentCollection = MongoDBHelper.getInstance().getDB().getCollection(OAUTHCONSENT);
 		}
 		return consentCollection;
 	}
 
-	/**
-	 * This helper method uses a properties file to get the database connection
-	 * parameters. It was done this way to support local testing of both Bell
-	 * and User Feature configurations.
-	 * 
-	 * It is not a general recommendation for all CustomStore implementations.
-	 * 
-	 */
-	private void getDatabaseConfig() {
-		File f = new File(MONGO_PROPS_FILE);
-		if (!f.exists()) {
-			throw new IllegalStateException("CustomStoreSample Database config file " + MONGO_PROPS_FILE
-					+ " was not found. This may be normal during server startup");
-		}
-		try {
-			BufferedReader br = new BufferedReader(
-					new InputStreamReader(new FileInputStream(f), Charset.forName("UTF8")));
-			try {
-				String line;
-				while ((line = br.readLine()) != null) {
-					if (line.startsWith("#") || line.trim().equals("")) { 
-						continue;
-					}
-					String[] prop = line.split(":");
-					if (prop.length != 2) {
-						LOGGER.log(Level.WARNING, "Exception key:value syntax of properties in " + MONGO_PROPS_FILE
-								+ ", line is: " + line);
-					} else {
-						if (prop[0].equals("DBNAME")) {
-							dbName = prop[1];
-						} else if (prop[0].equals("HOST")) {
-							dbHost = prop[1];
-						} else if (prop[0].equals("PWD")) {
-							dbPwd = prop[1];
-						} else if (prop[0].equals("PORT")) {
-							dbPort = Integer.parseInt(prop[1]);
-						} else if (prop[0].equals("USER")) {
-							dbUser = prop[1];
-						} else {
-							LOGGER.log(Level.INFO, "Unexpected property in " + MONGO_PROPS_FILE + ": " + prop[0]);
-						}
-					}
-				}
-				loadedPropsFile = true;
-
-			} finally {
-				br.close();
-			}
-		} catch (IOException e) {
-			LOGGER.log(Level.WARNING, "Database config could not be retrieved from " + MONGO_PROPS_FILE +". Using defaults.");
-		}
-	}
-
+	
 	@Override
 	public void create(OAuthClient oauthClient) throws OAuthStoreException {
 		try {
