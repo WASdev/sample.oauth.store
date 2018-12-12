@@ -55,20 +55,11 @@ Develop in Eclipse
 
 Connecting to your mongoDB database with customized configuration
 =================================================================
-The CustomStoreSample loads the information about the database from a `mongoDB.props` file. If you are done building, update the mongoDB.props in your server directory. If you are continuing to make changes and doing builds, then update the `mongoDB.props` in the `SupportFiles` directory. Do a gradlew build on the project to copy it over and restart. The `mongoDB.props` is copied over every time a build is done.
+The CustomStoreSample loads the information about the database from a `mongoDB.props` file. If you are done building, update the mongoDB.props in your server directory. If you plan to rebuilds, then update the `mongoDB.props` in the `SupportFiles` directory. Do a gradlew build on the project to copy the file over and restart. The `mongoDB.props` is copied over every time a build is done.
 
-To change the database name, host or port, edit values in the mongoDB.props file.   
+To change the database name, host or port, edit values in the mongoDB.props file.
 
-Create a database requiring authorization. MongoDB standalone server tips: If installed on Windows, go to the installation location bin directory (Program Files/mongoDB/Server/versionNum)
-1. Start the mongoDB server: run mongod.exe
-1. Access the mongoDB CLI: run mongo.exe
-1. In the CLI window opened by mongo.exe, create the database and a user (replace values as needed, oauthSample is the default database name).
-      - Create a database named oauthSample: 
-      > use oauthSample
-      - Create a user named testUser and a pwd of fancyPassword: 
-      > db.createUser( {    user: "testUser",    pwd: "fancyPassword",    roles: [      { role: "readWrite", db: "oauthSample" }    ]  } )
-
-Add a user and password to log into mongoDB
+If authentication is enabled on the mongoDB databsae, add the user and password fields in the mongoDB.props file.
    - Uncomment the "USER" and "PWD" options in the `mongoDB.props`. Add your database user/pwd.
 
 
