@@ -38,12 +38,12 @@ import com.mongodb.client.MongoCursor;
  * for an OAuth Provider. It is provided as-is.
  * 
  * It is currently a lazy application user feature. The mongoDB database will
- * not be accessed until a call is made to the customStore. 
+ * not be accessed until a call is made to the customStore.
  * 
  * It uses a MongoDB back end.
  **/
 public class CustomStoreSample implements OAuthStore {
-	
+
 	static final Logger LOGGER = Logger.getLogger(CustomStoreSample.class.getName());
 
 	private MongoCollection<Document> clientCollection = null;
@@ -58,7 +58,6 @@ public class CustomStoreSample implements OAuthStore {
 	// Keys in the database
 	final static String LOOKUPKEY = "LOOKUPKEY";
 	final static String UNIQUEID = "UNIQUEID";
-	final static String COMPONENTID = "COMPONENTID";
 	final static String TYPE = "TYPE";
 	final static String SUBTYPE = "SUBTYPE";
 	final static String CREATEDAT = "CREATEDAT";
@@ -70,7 +69,6 @@ public class CustomStoreSample implements OAuthStore {
 	final static String SCOPE = "SCOPE";
 	final static String REDIRECTURI = "REDIRECTURI";
 	final static String STATEID = "STATEID";
-	final static String EXTENDEDFIELDS = "EXTENDEDFIELDS";
 	final static String PROPS = "PROPS";
 	final static String RESOURCE = "RESOURCE";
 	final static String PROVIDERID = "PROVIDERID";
@@ -113,15 +111,16 @@ public class CustomStoreSample implements OAuthStore {
 		} catch (Exception e) {
 			throw new OAuthStoreException("Failed to process create on OAuthClient " + oauthClient.getClientId(), e);
 		}
+		LOGGER.log(Level.INFO, "Created OAuthClient: " + toString(oauthClient));
 	}
 
 	private Document createClientDBObjectHelper(OAuthClient oauthClient) {
 		Document d = new Document(CLIENTID, oauthClient.getClientId());
 
 		d.append(PROVIDERID, oauthClient.getProviderId());
-		d.append(CLIENTSECRET, /* PasswordUtil.passwordEncode( */oauthClient.getClientSecret()/* ) */);
+		d.append(CLIENTSECRET, oauthClient.getClientSecret());
 		d.append(DISPLAYNAME, oauthClient.getDisplayName());
-		d.append(ENABLED, oauthClient.isEnabled());
+		d.append(ENABLED, true); /* oauthClient.isEnabled() - Currently can't set on registration end-point */
 		d.append(METADATA, oauthClient.getClientMetadata());
 		return d;
 	}
@@ -134,6 +133,7 @@ public class CustomStoreSample implements OAuthStore {
 		} catch (Exception e) {
 			throw new OAuthStoreException("Failed to process create on OAuthToken " + oauthToken.getClientId(), e);
 		}
+		LOGGER.log(Level.INFO, "Created OAuthToken: " + toString(oauthToken));
 	}
 
 	private Document createTokenDBObjectHelper(OAuthToken oauthToken) {
@@ -145,7 +145,7 @@ public class CustomStoreSample implements OAuthStore {
 		d.append(CREATEDAT, oauthToken.getCreatedAt());
 		d.append(LIFETIME, oauthToken.getLifetimeInSeconds());
 		d.append(EXPIRES, oauthToken.getExpires());
-		d.append(TOKENSTRING, /* PasswordUtil.passwordEncode( */oauthToken.getTokenString()/* ) */);
+		d.append(TOKENSTRING, oauthToken.getTokenString());
 		d.append(CLIENTID, oauthToken.getClientId());
 		d.append(USERNAME, oauthToken.getUsername());
 		d.append(SCOPE, oauthToken.getScope());
@@ -163,6 +163,7 @@ public class CustomStoreSample implements OAuthStore {
 		} catch (Exception e) {
 			throw new OAuthStoreException("Failed to process create on OAuthConsent " + oauthConsent.getClientId(), e);
 		}
+		LOGGER.log(Level.INFO, "Created OAuthConsent: " + toString(oauthConsent));
 	}
 
 	private Document createConsentDBObjectHelper(OAuthConsent oauthConsent) {
@@ -348,66 +349,88 @@ public class CustomStoreSample implements OAuthStore {
 
 	@Override
 	public void deleteClient(String providerId, String clientId) throws OAuthStoreException {
+		long deleted = 0;
 		try {
 			MongoCollection<Document> col = getClientCollection();
-			col.deleteOne(createClientKeyHelper(providerId, clientId));
+			deleted = col.deleteOne(createClientKeyHelper(providerId, clientId)).getDeletedCount();
 		} catch (Exception e) {
 			throw new OAuthStoreException("Failed on delete for OAuthClient for " + clientId, e);
+		}
+		if (deleted > 0) {
+			LOGGER.log(Level.INFO, "Deleted OAuthClient: providerId=" + providerId + ", clientId=" + clientId);
 		}
 	}
 
 	@Override
 	public void deleteToken(String providerId, String lookupKey) throws OAuthStoreException {
+		long deleted = 0;
 		try {
 			MongoCollection<Document> col = getTokenCollection();
-			col.deleteOne(createTokenKeyHelper(providerId, lookupKey));
+			deleted = col.deleteOne(createTokenKeyHelper(providerId, lookupKey)).getDeletedCount();
 		} catch (Exception e) {
 			throw new OAuthStoreException("Failed on delete for OAuthToken for " + lookupKey, e);
+		}
+		if (deleted > 0) {
+			LOGGER.log(Level.INFO, "Deleted OAuthToken: providerId=" + providerId + ", lookupKey=" + lookupKey);
 		}
 	}
 
 	@Override
 	public void deleteTokens(String providerId, long timestamp) throws OAuthStoreException {
+		long deleted = 0;
 		try {
 			MongoCollection<Document> col = getTokenCollection();
 			LOGGER.log(Level.FINEST, "deleteTokens before count " + col.countDocuments());
 			Document query = new Document();
 			query.put(EXPIRES, new Document("$lt", timestamp));
 			query.put(PROVIDERID, providerId);
-			col.deleteMany(query);
+			deleted = col.deleteMany(query).getDeletedCount();
 			LOGGER.log(Level.FINEST, "deleteTokens after count " + col.countDocuments());
 		} catch (Exception e) {
 			throw new OAuthStoreException("Failed on deleteTokens for time after " + timestamp, e);
+		}
+		if (deleted > 0) {
+			LOGGER.log(Level.INFO, "Deleted OAuthToken(s): providerId=" + providerId + ", timeStamp=" + timestamp
+					+ ", count=" + deleted);
 		}
 	}
 
 	@Override
 	public void deleteConsent(String providerId, String username, String clientId, String resource)
 			throws OAuthStoreException {
+		long deleted = 0;
 		try {
 			MongoCollection<Document> col = getConsentCollection();
 			Document db = new Document(CLIENTID, clientId);
 			db.put(USERNAME, username);
 			db.put(PROVIDERID, providerId);
 			db.put(RESOURCE, resource);
-			col.deleteOne(db);
+			deleted = col.deleteOne(db).getDeletedCount();
 
 		} catch (Exception e) {
 			throw new OAuthStoreException("Failed on delete for Consent for " + username, e);
 		}
-
+		if (deleted > 0) {
+			LOGGER.log(Level.INFO, "Deleted OAuthConsent: providerId=" + providerId + ", username=" + username
+					+ ", clientId=" + clientId + ", resource=" + resource);
+		}
 	}
 
 	@Override
 	public void deleteConsents(String providerId, long timestamp) throws OAuthStoreException {
+		long deleted = 0;
 		try {
 			MongoCollection<Document> col = getConsentCollection();
 			Document query = new Document();
 			query.put(EXPIRES, new Document("$lt", timestamp));
 			query.put(PROVIDERID, providerId);
-			col.deleteMany(query);
+			deleted = col.deleteMany(query).getDeletedCount();
 		} catch (Exception e) {
 			throw new OAuthStoreException("Failed on deleteConsents for time after " + timestamp, e);
+		}
+		if (deleted > 0) {
+			LOGGER.log(Level.INFO, "Deleted OAuthConsent(s): providerId=" + providerId + ", timeStamp=" + timestamp
+					+ ", count=" + deleted);
 		}
 	}
 
@@ -444,4 +467,57 @@ public class CustomStoreSample implements OAuthStore {
 		return d;
 	}
 
+	/**
+	 * Get a string representation of an OAuthClient.
+	 * 
+	 * <p/>
+	 * WARNING! This method is for demonstrative purposes only and care should be
+	 * taken to not print out confidential information.
+	 * 
+	 * @param client The OAuthClient to get a string representation of.
+	 * @return The toString.
+	 */
+	private static String toString(OAuthClient client) {
+		return "{" + client.toString() + ": " + "clientId=" + client.getClientId() + ", providerID="
+				+ client.getProviderId() + ", displayName=" + client.getDisplayName() + ", clientSecret="
+				+ client.getClientSecret() + ", clientMetadata=" + client.getClientMetadata() + ", enabled="
+				+ client.isEnabled() + "}";
+	}
+
+	/**
+	 * Get a string representation of an OAuthConsent.
+	 * 
+	 * <p/>
+	 * WARNING! This method is for demonstrative purposes only and care should be
+	 * taken to not print out confidential information.
+	 * 
+	 * @param client The OAuthClient to get a string representation of.
+	 * @return The toString.
+	 */
+	private static String toString(OAuthConsent consent) {
+		return "{" + consent.toString() + ": " + "clientId=" + consent.getClientId() + ", providerID="
+				+ consent.getProviderId() + ", user=" + consent.getUser() + ", resource=" + consent.getResource()
+				+ ", scope=" + consent.getScope() + ", expires=" + consent.getExpires() + ", consentProperties="
+				+ consent.getConsentProperties() + "}";
+	}
+
+	/**
+	 * Get a string representation of an OAuthToken.
+	 * 
+	 * <p/>
+	 * WARNING! This method is for demonstrative purposes only and care should be
+	 * taken to not print out confidential information.
+	 * 
+	 * @param client The OAuthClient to get a string representation of.
+	 * @return The toString.
+	 */
+	private static String toString(OAuthToken token) {
+		return "{" + token.toString() + ": " + "clientId=" + token.getClientId() + ", providerID="
+				+ token.getProviderId() + ", lookupKey=" + token.getLookupKey() + ", username=" + token.getUsername()
+				+ ", createdAt=" + token.getCreatedAt() + ", expires=" + token.getExpires() + ", lifetimeInSeconds="
+				+ token.getLifetimeInSeconds() + ", redirectUri=" + token.getRedirectUri() + ", scope="
+				+ token.getScope() + ", stateId=" + token.getStateId() + ", subType=" + token.getSubType()
+				+ ", tokenProperties=" + token.getTokenProperties() + ", type=" + token.getType() + ", uniqueId="
+				+ token.getUniqueId() + "}";
+	}
 }

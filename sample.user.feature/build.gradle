@@ -119,8 +119,8 @@ jar.doLast {
  */
 installLiberty.doLast {
     exec {
-        commandLine "${wlpRoot}/bin/installUtility", "install", "oauth-2.0"
-	ignoreExitValue = true
+        commandLine "${wlpRoot}/bin/installUtility", "install", "oauth-2.0", "openidconnectserver-1.0"
+        ignoreExitValue = true
     }
 }
 
