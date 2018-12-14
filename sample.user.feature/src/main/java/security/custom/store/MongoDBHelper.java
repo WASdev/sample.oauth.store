@@ -17,15 +17,13 @@
 
 package security.custom.store;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileInputStream;
+import java.io.FileReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.Charset;
 import java.util.Arrays;
 import java.util.Dictionary;
 import java.util.Hashtable;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -147,39 +145,16 @@ public class MongoDBHelper implements ManagedService {
 					+ " was not found. This may be normal during server startup");
 		}
 		try {
-			BufferedReader br = new BufferedReader(
-					new InputStreamReader(new FileInputStream(f), Charset.forName("UTF8")));
-			try {
-				String line;
-				while ((line = br.readLine()) != null) {
-					if (line.startsWith("#") || line.trim().equals("")) {
-						continue;
-					}
-					String[] prop = line.split(":");
-					if (prop.length != 2) {
-						LOGGER.log(Level.WARNING, "Exception key:value syntax of properties in " + MONGO_PROPS_FILE
-								+ ", line is: " + line);
-					} else {
-						if (prop[0].equals("DBNAME")) {
-							dbName = prop[1];
-						} else if (prop[0].equals("HOST")) {
-							dbHost = prop[1];
-						} else if (prop[0].equals("PWD")) {
-							dbPwd = prop[1];
-						} else if (prop[0].equals("PORT")) {
-							dbPort = Integer.parseInt(prop[1]);
-						} else if (prop[0].equals("USER")) {
-							dbUser = prop[1];
-						} else {
-							LOGGER.log(Level.INFO, "Unexpected property in " + MONGO_PROPS_FILE + ": " + prop[0]);
-						}
-					}
-				}
-				loadedProps = true;
+			Properties mongoProps = new Properties();
+			mongoProps.load(new FileReader(f));
 
-			} finally {
-				br.close();
-			}
+			dbName = mongoProps.getProperty("DBNAME", dbName);
+			dbHost = mongoProps.getProperty("HOST", dbHost);
+			dbPort = Integer.valueOf(mongoProps.getProperty("PORT", String.valueOf(dbPort)));
+			dbUser = mongoProps.getProperty("USER", dbUser);
+			dbPwd = mongoProps.getProperty("PWD", dbPwd);
+			loadedProps = true;
+			
 		} catch (IOException e) {
 			LOGGER.log(Level.WARNING,
 					"Database config could not be retrieved from " + MONGO_PROPS_FILE + ". Using defaults.");

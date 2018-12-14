@@ -1,9 +1,41 @@
-# Optional properties file for sample.oauth.store sample, loaded by the CustomStoreSample class.
-# Place in the server directory. Example: wlp/usr/servers/server1
-# Uncomment the USER and PWD lines to provide a user and password to your database
+###########################################################################################
+#
+# Copyright 2018 International Business Machines Corp.
+# 
+# See the NOTICE file distributed with this work for additional information
+# regarding copyright ownership. Licensed under the Apache License, 
+# Version 2.0 (the "License"); you may not use this file except in compliance
+# with the License. You may obtain a copy of the License at
+# 
+#   http://www.apache.org/licenses/LICENSE-2.0
+# 
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+###########################################################################################
 
-DBNAME:oauthSample
-HOST:localhost
-PORT:27017
-# USER:userName
-# PWD:userPassword
+#
+# This is a properties file for sample.oauth.store project. These properties are used to
+# configure the connection to MongoDB for both the OAuthStore implementations and the tests.
+#
+# The file is copied to the server directory of Liberty during start-up for the 
+# bell.sample.
+#
+# Uncomment the USER and PWD lines to use authentication when connecting to MongoDB.
+#
+# Modify the START_MONGODB property to false if you have a MongDB instance running that
+# you wish to connect to for running tests. Otherwise; the test framework will start
+# a non-persistent MongoDB instance to complete the tests. If a MongoDB instance is not to
+# be started ensure that the MongoDB instance is running prior to running the tests and
+# that HOST and PORT point to the running instance.
+#
+
+DBNAME=oauthSample
+HOST=localhost
+PORT=27017
+# USER=userName
+# PWD=userPassword
+START_MONGODB=true
