@@ -72,6 +72,7 @@ import com.google.gson.reflect.TypeToken;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
+import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
@@ -102,6 +103,8 @@ public class OAuthStoreSampleFvtTest {
 	 * A handle to the MongoDB executable.
 	 */
 	private static MongodExecutable mongodExecutable = null;
+	
+	private static MongoClient mongoClient = null;
 
 	/**
 	 * The MongoDB collection name for storing OAuthClients (as defined in the
@@ -420,6 +423,9 @@ public class OAuthStoreSampleFvtTest {
 
 	@AfterAll
 	public static void afterAll() {
+		if (mongoClient != null) {
+			mongoClient.close();
+		}
 		if (mongodExecutable != null) {
 			mongodExecutable.stop();
 		}
@@ -695,7 +701,8 @@ public class OAuthStoreSampleFvtTest {
 					.build();
 		}
 
-		return MongoClients.create(settings).getDatabase(mongodbName);
+		mongoClient = MongoClients.create(settings);
+		return mongoClient.getDatabase(mongodbName);
 	}
 
 	/**
