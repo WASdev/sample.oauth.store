@@ -13,6 +13,7 @@ Quick Start
 ===========
 1. Clone the `sample.oauth.store` project:
    > git clone https://github.com/WASdev/sample.oauth.store
+   
    > cd sample.oauth.store
 
 1. Start WebSphere Liberty in either the `sample.bell` or `sample.user.feature` projects. This command will build the required libraries and install them into the WebSphere Liberty instance and then start a WebSphere Liberty server that is configured with the OAuthStore implementation.
@@ -40,6 +41,8 @@ More Detailed
 
 1. Bring down the sample projects with git: 
    > git clone https://github.com/WASdev/sample.oauth.store
+   
+   > cd sample.oauth.store
 
 1. To build and start a server running one of the custom OAuthStore samples, run on of the following commands:
 
@@ -61,6 +64,7 @@ Developing in Eclipse
 =====================
 1. If you did not do the quick start steps, bring down the sample projects with git: 
    > git clone https://github.com/WASdev/sample.oauth.store
+   
    > cd sample.oauth.store
 
 1. Generate the Eclipse project and classpath files for all the sub-projects.
