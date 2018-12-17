@@ -21,3 +21,10 @@ test {
         events 'PASSED', 'FAILED', 'SKIPPED'
     }
 }
+
+/*
+ * Since this test project runs tests against the 'sample.bell' and the
+ * 'sample.user.feature' projects, clean before running the 'test' task
+ * so that the test task will always run.
+ */
+test.dependsOn 'clean'

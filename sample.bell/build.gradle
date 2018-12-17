@@ -18,25 +18,12 @@ buildscript {
 
 repositories {
     mavenCentral()
-
-    // TODO: Can remove this after 18004 is published to maven central.
-    flatDir {
-        dirs "${wlpRoot}/dev/api/ibm/"
-    }
 }
 
 dependencies {
     compile 'org.mongodb:mongodb-driver-sync:3.9.1'
-
-// TODO Can remove the first line and uncomment out the second when 18004 is published to maven central.
-    compileOnly name: 'com.ibm.websphere.appserver.api.oauth_1.2.23'
-//    compileOnly group: 'com.ibm.websphere.appserver.features', name: 'oauth-2.0', version: '18.0.0.4'
-
-//
-// The ci.gradle doc says this should grab and install the feature, but it doesn't work. Maybe b/c I am using the beta?
-//
-//    libertyFeature 'com.ibm.websphere.appserver.features:oauth-2.0:18.0.0.4'
-//    libertyRuntime group: 'io.openliberty', name: 'openliberty-runtime', version: '[18.0.0.4,)'
+    compileOnly group: 'com.ibm.websphere.appserver.api', name: 'com.ibm.websphere.appserver.api.oauth', version: '[1.2.23,)'
+    libertyRuntime group: 'com.ibm.websphere.appserver.runtime', name: 'wlp-kernel', version: '[18.0.0.4,)'
 }
 
 ext {
@@ -46,8 +33,8 @@ ext {
 
 liberty {
     server {
-        /* Install all features configured in the server.xml. */
         features {
+            name = ['bells-1.0', 'openidconnectserver-1.0']
             acceptLicense = true
         }
 
@@ -55,14 +42,19 @@ liberty {
         bootstrapProperties = ['httpPort': httpPort, 'httpsPort': httpsPort]
         configDirectory = file('src/liberty/config')
     }
-
-    install {
-        // TODO: Run with the publicly available November 2018 beta for now.
-        runtimeUrl = "https://public.dhe.ibm.com/ibmdl/export/pub/software/websphere/wasdev/downloads/wlp/beta/wlp-beta-2018.11.0.0.zip"
-    }
 }
 
 libertyStart.doFirst {
+	
+    /*
+     * Copy all runtime JARs required for the OAuthStore implementation.
+     */
+    copy {
+        from "${jar.archivePath}"
+        from configurations.runtime
+        into "${wlpRoot}/usr/shared/resources/libs"
+    }
+
     /*
      * Copy the MongoDB properties file to the server.
      */
@@ -82,38 +74,11 @@ jar {
 }
 
 /*
- * This task will copy all runtime JARs required for the OAuthStore implementation.
- */
-task copyRuntimeJars(type: Copy) {
-    dependsOn jar
-
-    from "${jar.archivePath}"
-    from configurations.runtime
-    into "${wlpRoot}/usr/shared/resources/libs"
-}
-
-/*
- * Install any necessary features that weren't installed in the beta.
- *
- * TODO: This can be removed after the feature install of the Liberty gradle plugin works.
- */
-installLiberty.doLast {
-    exec {
-        commandLine "${wlpRoot}/bin/installUtility", "install", "oauth-2.0", "bells-1.0", "openidconnectserver-1.0"
-        ignoreExitValue = true
-    }
-}
-
-// TODO: Need the Liberty install for the OAuthStore API. Can remove when 18004 is published to maven central
-compileJava.dependsOn 'installLiberty'
-
-/*
  * Targets for starting and stopping the Liberty server.
  */
 clean.dependsOn 'libertyStop'
 libertyPackage.dependsOn 'libertyStop'
-libertyStart.dependsOn 'libertyStop'
-libertyStart.dependsOn 'copyRuntimeJars'
+libertyStart.dependsOn 'libertyStop', 'jar'
 libertyRun.dependsOn 'libertyStop'
 
 task start { dependsOn 'libertyStart' }
