@@ -5,7 +5,7 @@ THIS IS AN UNFINISHED DRAFT
 sample.oauth.store
 =======================
 
-This sample project provides example implementations of com.ibm.websphere.security.oauth20.store.OAuthStore for the WebSphere Liberty profile.
+This sample project provides example implementations of `com.ibm.websphere.security.oauth20.store.OAuthStore` for the WebSphere Liberty profile.
 
 The first project, `sample.bell` contains an implementation that is packaged and loaded into Liberty using the `bells-1.0` feature, while the second project, `sample.user.feature`, contains an implementation that is packaged and loaded into WebSphere Liberty as a user feature. The samples are otherwise functionally equivalent and use a MongoDB database to store the clients, tokens and consents. 
 
@@ -51,8 +51,6 @@ More Detailed
     OR
 
     > ./gradlew sample.user.feature:start
-
-   - Pre-GA: For Windows, edit the build.gradle file and change `commandLine "${wlpRoot}/bin/installUtility"` to commandLine `"${wlpRoot}/bin/installUtility.bat"` (add the .bat).
    
 1. To check if your BELL or User Feature loaded, check the messages.log
    - For the BELL, check `sample.oauth.store\sample.bell\build\wlp\usr\servers\server1\logs\messages.log` for `I CustomStoreSample Bell initialized.`
