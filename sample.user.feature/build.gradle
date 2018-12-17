@@ -34,6 +34,41 @@ ext {
     httpsPort = 8443
 }
 
+// Load mongoDB config from the SupportFiles/mongoDB.props.
+// This information is referenced from the server.xml and stored in a bootstrap.properties file
+// The User Feature reads this configuration during runtime using Activator and MongoDBHelper.
+def Properties props = new Properties()
+def propFile = file('../SupportFiles/mongoDB.props')
+def databaseName;
+def hostname;
+def port;
+def user;
+def password;
+
+if (propFile.canRead()){
+    props.load(new FileInputStream(propFile))
+
+    if (props!=null && props.containsKey('DBNAME')) {
+        databaseName = props['DBNAME']
+    }
+
+    if (props!=null && props.containsKey('HOST')) {
+        hostname = props['HOST']
+    }
+    
+    if (props!=null && props.containsKey('PORT')) {
+        port = props['PORT']
+    }
+    
+    if (props!=null && props.containsKey('USER')) {
+        user = props['USER']
+    }
+    
+    if (props!=null && props.containsKey('PWD')) {
+        password = props['PWD']
+    }
+}
+
 liberty {
     server {
         features {
@@ -42,7 +77,7 @@ liberty {
         }
 
         name = "${wlpServerName}"
-        bootstrapProperties = ['httpPort': httpPort, 'httpsPort': httpsPort]
+        bootstrapProperties = ['httpPort': httpPort, 'httpsPort': httpsPort, 'databaseName' : databaseName, 'hostname' : hostname, 'port' : port, 'user' : user, 'password' : password]
         configDirectory = file('src/liberty/config')
     }
 }
