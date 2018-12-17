@@ -77,9 +77,7 @@ Developing in Eclipse
 
 Connecting to your mongoDB database with customized configuration
 =================================================================
-The CustomStoreSample loads the information about the database from the `SupportFiles/mongoDB.props` file. If you are done building, update the `mongoDB.props` in your server directory. If you plan to rebuilds, then update the `SupportFiles/mongoDB.props`. Do a gradlew build on the project to copy the file over and restart. The `SupportFiles/mongoDB.props` is copied into the server, overwriting the existing file, every time a build is done.
-
-To change the database name, host or port, edit values in the mongoDB.props file.
+The CustomStoreSample loads the information about the database from the `SupportFiles/mongoDB.props` file. It is configured to use localhost:27017 (default MongoDB port) by default. To update the database name, hostname, port or add a user and password, update the  `SupportFiles/mongoDB.props`. Whenever you change the mongoDB.props, do a gradlew build on the project to copy the file over. The `SupportFiles/mongoDB.props` is copied into the server, overwriting the existing file, every time a build is done.
 
 To use an existing MongoDB instance with the `sample.test` tests instead of the testing instance that the `sample.test` project starts up, set "START_MONGODB=false" in the `mongoDB.props` file.
 
