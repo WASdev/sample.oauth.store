@@ -35,7 +35,7 @@ Quick Start
 
 More Detailed
 =============
-1. Optional: Download, install and start mongoDB if you do not wish to use the testing MongoDB instance. See https://www.mongodb.com/
+1. Optional: Download, install and start mongoDB if you do not wish to use the testing/temporary MongoDB instance (started by default when running `sample.test`. See https://www.mongodb.com/
    - If installed on Windows, go to the installation location bin directory (example: `Program Files/mongoDB/Server/40`)
    - Start the mongoDB server: mongod.exe
    - You will need to update the mongo properties files to not start a temporary MongoDB instance. See instructions below to edit the `SupportFiles/mongoDB.props` file.
