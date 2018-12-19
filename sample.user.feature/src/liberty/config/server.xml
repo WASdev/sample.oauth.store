@@ -32,9 +32,9 @@
          For the user feature, we can load the mongoDB configuration from the server.xml.
          This is an example of passing in the databaseName, host and port.
          See the security.custom.store.Activator and security.custom.store.MongoDBHelper for 
-         details on how these values are used. These keys can also be added: user="user1" password="passwordOfPower" 
+         details on how these values are used. These keys can also be added: user="${user}" password="${password}" 
      -->
-    <customStoreMongoDBConfig databaseName="oauthSample" hostname="localhost" port="27017" />
+    <customStoreMongoDBConfig databaseName="${databaseName}" hostname="${hostname}" port="${port}" />
 
     <!-- 
          Configure the OIDC provider to use the OAuth provider that defines the custom store

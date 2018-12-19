@@ -24,6 +24,7 @@ dependencies {
     compile 'org.mongodb:mongodb-driver-sync:3.9.1'
     compileOnly group: 'com.ibm.websphere.appserver.api', name: 'com.ibm.websphere.appserver.api.oauth', version: '[1.2.23,)'
     libertyRuntime group: 'com.ibm.websphere.appserver.runtime', name: 'wlp-kernel', version: '[18.0.0.4,)'
+    compile group: 'javax.xml.crypto', name: 'jsr105-api', version: '1.0.1' // needed if doing authorization on MongoDB
 }
 
 ext {

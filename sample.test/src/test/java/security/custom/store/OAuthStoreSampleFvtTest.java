@@ -247,7 +247,7 @@ public class OAuthStoreSampleFvtTest {
 	/**
 	 * The MongoDB properties file.
 	 */
-	private final static String MONGO_PROPS_FILE = "SupportFiles/mongoDB.props";
+	private final static String MONGO_PROPS_FILE = "../SupportFiles/mongoDB.props";
 
 	/**
 	 * The property used to store the database name for MongoDB. This is retrieved
@@ -424,10 +424,12 @@ public class OAuthStoreSampleFvtTest {
 	@AfterAll
 	public static void afterAll() {
 		if (mongoClient != null) {
+			System.out.println("Closed mongoClient");
 			mongoClient.close();
 		}
 		if (mongodExecutable != null) {
 			mongodExecutable.stop();
+			System.out.println("Stopped mongoDB server.");
 		}
 	}
 
@@ -620,11 +622,14 @@ public class OAuthStoreSampleFvtTest {
 		 * Startup a MondoDB instance.
 		 */
 		if (mongodbStart) {
+			System.out.println("Starting a local mongoDB.");
 			MongodStarter starter = MongodStarter.getDefaultInstance();
 			MongodConfigBuilder builder = new MongodConfigBuilder().version(Version.V3_6_5)
 					.net(new Net(mongodbHost, mongodbPort, Network.localhostIsIPv6()));
 			mongodExecutable = starter.prepare(builder.build());
 			mongodExecutable.start();
+		} else {
+			System.out.println("Will connect to an existing mongoDB at " + mongodbHost +":" + mongodbPort);
 		}
 
 		/*

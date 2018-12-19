@@ -26,10 +26,12 @@ import org.osgi.service.cm.ManagedService;
 
 /**
  * 
- * This Activator registers the MongoDBHelper class so it can optionally load configuration information
- * from the server.xml
- * 
+ * This Activator registers the MongoDBHelper class so it can optionally load
+ * configuration information from the server.xml
+ * </p>
  * It also stops the database connection when the bundle stops.
+ * </p>
+ * This Activator is set in the MANIFEST.MF.
  *
  */
 public class Activator implements BundleActivator {
@@ -40,18 +42,24 @@ public class Activator implements BundleActivator {
 
 	@Override
 	public void start(BundleContext context) throws Exception {
-		// Do not connect to the MongoDB database at activation. Leave as lazy init.
+		// Do not connect to the MongoDB database at activation. Leave as lazy init on
+		// first database access.
 
+		// Register MongoDBHelper as a ManagedService so it can receive configuration
+		// information from the server.xml
 		configRef = context.registerService(ManagedService.class.getCanonicalName(), MongoDBHelper.getInstance(),
 				MongoDBHelper.getInstance().getDefaults());
 	}
 
 	@Override
 	public void stop(BundleContext context) throws Exception {
+
+		// Unregister MongoDBHelper as a ManagedService
 		if (configRef != null) {
 			configRef.unregister();
 		}
 
+		// Stop the MongoDB client connection
 		MongoDBHelper.getInstance().stopDB();
 	}
 

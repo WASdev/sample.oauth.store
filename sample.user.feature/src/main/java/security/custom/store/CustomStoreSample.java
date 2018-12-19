@@ -36,51 +36,65 @@ import com.mongodb.client.MongoCursor;
 /**
  * The main purpose of this sample is to demonstrate the use of a CustomStore
  * for an OAuth Provider. It is provided as-is.
- * 
- * It is currently a lazy application user feature. The mongoDB database will
+ * </p>
+ * It is a lazy application user feature. The mongoDB database will
  * not be accessed until a call is made to the customStore.
- * 
+ * </p>
  * It uses a MongoDB back end.
+ * </p>
+ * Some additional items (not a comprehensive list) to consider for a production ready CustomStore:
+ * <ul>
+ * <li>Database tuning (connection timeouts, etc)</li>
+ * <li>Database fail over</li>
+ * <li>Additional logging and tracing</li>
+ * <li>Adding a custom primary key (see the _id field for MongoDB)</li>
+ * <li>Appropriate security for your mongoDB implementation</li>
+ * </ul>
  **/
 public class CustomStoreSample implements OAuthStore {
 
+	// To enable trace for this class, enable trace in the server.xml and add this package name to the trace specification: security.custom.store.*=all
 	static final Logger LOGGER = Logger.getLogger(CustomStoreSample.class.getName());
 
 	private MongoCollection<Document> clientCollection = null;
 	private MongoCollection<Document> tokenCollection = null;
 	private MongoCollection<Document> consentCollection = null;
 
-	// Collection types in the database
-	static String OAUTHCLIENT = "OauthClient";
-	static String OAUTHTOKEN = "OauthToken";
-	static String OAUTHCONSENT = "OauthConsent";
+	// Collection names in the database.
+	private final static String OAUTHCLIENT = "OauthClient";
+	private final static String OAUTHTOKEN = "OauthToken";
+	private final static String OAUTHCONSENT = "OauthConsent";
 
 	// Keys in the database
-	final static String LOOKUPKEY = "LOOKUPKEY";
-	final static String UNIQUEID = "UNIQUEID";
-	final static String TYPE = "TYPE";
-	final static String SUBTYPE = "SUBTYPE";
-	final static String CREATEDAT = "CREATEDAT";
-	final static String LIFETIME = "LIFETIME";
-	final static String EXPIRES = "EXPIRES"; // long
-	final static String TOKENSTRING = "TOKENSTRING";
-	final static String CLIENTID = "CLIENTID";
-	final static String USERNAME = "USERNAME";
-	final static String SCOPE = "SCOPE";
-	final static String REDIRECTURI = "REDIRECTURI";
-	final static String STATEID = "STATEID";
-	final static String PROPS = "PROPS";
-	final static String RESOURCE = "RESOURCE";
-	final static String PROVIDERID = "PROVIDERID";
-	final static String CLIENTSECRET = "CLIENTSECRET";
-	final static String DISPLAYNAME = "DISPLAYNAME";
-	final static String ENABLED = "ENABLED";
-	final static String METADATA = "METADATA";
+	private final static String LOOKUPKEY = "LOOKUPKEY";
+	private final static String UNIQUEID = "UNIQUEID";
+	private final static String TYPE = "TYPE";
+	private final static String SUBTYPE = "SUBTYPE";
+	private final static String CREATEDAT = "CREATEDAT";
+	private final static String LIFETIME = "LIFETIME";
+	private final static String EXPIRES = "EXPIRES"; // long
+	private final static String TOKENSTRING = "TOKENSTRING";
+	private final static String CLIENTID = "CLIENTID";
+	private final static String USERNAME = "USERNAME";
+	private final static String SCOPE = "SCOPE";
+	private final static String REDIRECTURI = "REDIRECTURI";
+	private final static String STATEID = "STATEID";
+	private final static String PROPS = "PROPS";
+	private final static String RESOURCE = "RESOURCE";
+	private final static String PROVIDERID = "PROVIDERID";
+	private final static String CLIENTSECRET = "CLIENTSECRET";
+	private final static String DISPLAYNAME = "DISPLAYNAME";
+	private final static String ENABLED = "ENABLED";
+	private final static String METADATA = "METADATA";
 
 	public CustomStoreSample() {
 		LOGGER.log(Level.INFO, "CustomStoreSample User Feature initialized.");
 	}
 
+	/**
+	 * Helper method to lazy initialize the collection for the OAuthClient collection
+	 * @return A MongoCollection for the OAuthClient collection.
+	 */
 	private MongoCollection<Document> getClientCollection() {
 		if (clientCollection == null) {
 			clientCollection = MongoDBHelper.getInstance().getDB().getCollection(OAUTHCLIENT);
@@ -88,6 +102,10 @@ public class CustomStoreSample implements OAuthStore {
 		return clientCollection;
 	}
 
+	/**
+	 * Helper method to lazy initialize the collection for the OAuthToken collection
+	 * @return  A MongoCollection for the OAuthToken collection.
+	 */
 	private MongoCollection<Document> getTokenCollection() {
 		if (tokenCollection == null) {
 			tokenCollection = MongoDBHelper.getInstance().getDB().getCollection(OAUTHTOKEN);
@@ -95,6 +113,10 @@ public class CustomStoreSample implements OAuthStore {
 		return tokenCollection;
 	}
 
+	/**
+	 * Helper method to lazy initialize the collection for the OAuthConsent collection
+	 * @return  A MongoCollection for the OAuthConsent collection.
+	 */
 	private MongoCollection<Document> getConsentCollection() {
 		if (consentCollection == null) {
 			consentCollection = MongoDBHelper.getInstance().getDB().getCollection(OAUTHCONSENT);
@@ -114,6 +136,11 @@ public class CustomStoreSample implements OAuthStore {
 		LOGGER.log(Level.INFO, "Created OAuthClient: " + toString(oauthClient));
 	}
 
+	/**
+	 * Helper method to create the mongoDB Document from an OAuthClient object
+	 * @param oauthClient
+	 * @return Document representing the provided OAuthClient
+	 */
 	private Document createClientDBObjectHelper(OAuthClient oauthClient) {
 		Document d = new Document(CLIENTID, oauthClient.getClientId());
 
@@ -136,6 +163,11 @@ public class CustomStoreSample implements OAuthStore {
 		LOGGER.log(Level.INFO, "Created OAuthToken: " + toString(oauthToken));
 	}
 
+	/**
+	 * Helper method to create the mongoDB Document from an OAuthToken object
+	 * @param oauthToken
+	 * @return Document representing the provided OAuthToken
+	 */
 	private Document createTokenDBObjectHelper(OAuthToken oauthToken) {
 		Document d = new Document(LOOKUPKEY, oauthToken.getLookupKey());
 		d.append(UNIQUEID, oauthToken.getUniqueId());
@@ -166,6 +198,11 @@ public class CustomStoreSample implements OAuthStore {
 		LOGGER.log(Level.INFO, "Created OAuthConsent: " + toString(oauthConsent));
 	}
 
+	/**
+	 * Helper method to create the mongoDB Document from an OAuthConsent object
+	 * @param oauthConsent
+	 * @return Document representing the provided OAuthConsent
+	 */
 	private Document createConsentDBObjectHelper(OAuthConsent oauthConsent) {
 		Document d = new Document(CLIENTID, oauthConsent.getClientId());
 		d.append(USERNAME, oauthConsent.getUser());
@@ -198,6 +235,11 @@ public class CustomStoreSample implements OAuthStore {
 		}
 	}
 
+	/**
+	 * Helper method to create an OAuthClient from a database Document object
+	 * @param dbo
+	 * @return OAuthClient created from the provided Document
+	 */
 	private OAuthClient createOAuthClientHelper(Document dbo) {
 		return new OAuthClient((String) dbo.get(PROVIDERID), (String) dbo.get(CLIENTID), (String) dbo.get(CLIENTSECRET),
 				(String) dbo.get(DISPLAYNAME), (boolean) dbo.get(ENABLED), (String) dbo.get(METADATA));
@@ -254,6 +296,11 @@ public class CustomStoreSample implements OAuthStore {
 		}
 	}
 
+	/**
+	 * Helper method to create an OAuthToken from a database Document object	
+	 * @param dbo
+	 * @return OAuthToken created from the provided Document
+	 */
 	private OAuthToken createOAuthTokenHelper(Document dbo) {
 		return new OAuthToken((String) dbo.get(LOOKUPKEY), (String) dbo.get(UNIQUEID), (String) dbo.get(PROVIDERID),
 				(String) dbo.get(TYPE), (String) dbo.get(SUBTYPE), (long) dbo.get(CREATEDAT), (int) dbo.get(LIFETIME),
@@ -310,11 +357,20 @@ public class CustomStoreSample implements OAuthStore {
 				return null;
 			}
 			LOGGER.log(Level.FINEST, "readConsent Found clientId " + clientId + " under " + providerId + " _id " + dbo.get("_id"));
-			return new OAuthConsent(clientId, (String) dbo.get(USERNAME), (String) dbo.get(SCOPE), resource, providerId,
-					(long) dbo.get(EXPIRES), (String) dbo.get(PROPS));
+			return createOAuthConsentHelper(dbo);
 		} catch (Exception e) {
 			throw new OAuthStoreException("Failed on readConsent for " + username, e);
 		}
+	}
+	
+	/**
+	 * Helper method to create an OAuthConsent from a database Document object	
+	 * @param dbo
+	 * @return OAuthConsent created from the provided Document
+	 */
+	private OAuthConsent createOAuthConsentHelper(Document dbo) {
+		return new OAuthConsent((String) dbo.get(CLIENTID), (String) dbo.get(USERNAME), (String) dbo.get(SCOPE), (String) dbo.get(RESOURCE), (String) dbo.get(PROVIDERID),
+				(long) dbo.get(EXPIRES), (String) dbo.get(PROPS));
 	}
 
 	@Override
@@ -434,31 +490,66 @@ public class CustomStoreSample implements OAuthStore {
 		}
 	}
 
+	/**
+	 * Helper method to create a filter Document to look up an OAuthClient.
+	 * @param oauthClient
+	 * @return A filter Document created with the providerId and clientId from the provided OAuthClient
+	 */
 	private Document createClientKeyHelper(OAuthClient oauthClient) {
 		return createClientKeyHelper(oauthClient.getProviderId(), oauthClient.getClientId());
 	}
 
+	/**
+	 * Helper method to create a filter Document to look up an OAuthClient.
+	 * @param providerId
+	 * @param clientId
+	 * @return A filter Document created with the provided fields.
+	 */
 	private Document createClientKeyHelper(String providerId, String clientId) {
 		Document d = new Document(CLIENTID, clientId);
 		d.append(PROVIDERID, providerId);
 		return d;
 	}
 
+	/**
+	 * Helper method to create a filter Document to look up an OAuthToken.
+	 * @param oauthToken
+	 * @return A filter Document created with the providerId and lookupKey from the provided OAuthToken
+	 */
 	private Document createTokenKeyHelper(OAuthToken oauthToken) {
 		return createTokenKeyHelper(oauthToken.getProviderId(), oauthToken.getLookupKey());
 	}
 
+	/**
+	 * Helper method to create a filter Document to look up an OAuthToken.
+	 * @param oauthToken
+	 * @return A filter Document created with the provided fields
+	 */
 	private Document createTokenKeyHelper(String providerId, String lookupKey) {
 		Document d = new Document(LOOKUPKEY, lookupKey);
 		d.append(PROVIDERID, providerId);
 		return d;
 	}
 
+	/**
+	 * Helper method to create a filter Document to look up an OAuthConsent.
+	 * @param oauthConsent
+	 * @return A filter Document created with the clientId, user, resource and providerId fields from the provided OAuthConsent
+	 */
 	private Document createConsentKeyHelper(OAuthConsent oauthConsent) {
 		return createConsentKeyHelper(oauthConsent.getClientId(), oauthConsent.getUser(), oauthConsent.getResource(),
 				oauthConsent.getProviderId());
 	}
 
+
+	/**
+	 * Helper method to create a filter Document to look up an OAuthConsent.
+	 * @param providerId 
+	 * @param username
+	 * @param clientId
+	 * @param resource
+	 * @return A filter Document created with the provided fields.
+	 */
 	private Document createConsentKeyHelper(String providerId, String username, String clientId, String resource) {
 		Document d = new Document(CLIENTID, clientId);
 		d.append(USERNAME, username);

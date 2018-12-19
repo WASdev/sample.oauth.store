@@ -41,17 +41,21 @@ import com.mongodb.client.MongoDatabase;
  * Helper class to connect to the mongoDB database. This implementation can
  * either pull the database config from a mongoDB.props file or from the
  * server.xml.
- *
+ * </p>
  * This example does not have any performance tuning or fail over options
  * configured.
+ * </p>
+ * It can connect with a username and password enabled, but any other authentication
+ * option will need to be added.
  */
 public class MongoDBHelper implements ManagedService {
 
+	// To enable trace for this class, enable trace in the server.xml and add this package name to the trace specification: security.custom.store.*=all
 	static final Logger LOGGER = Logger.getLogger(MongoDBHelper.class.getName());
 
 	private static MongoDBHelper instance;
 
-	// Loading mongoDB config from server.xml
+	// Attribute keys for loading mongoDB config from server.xml
 	// <customStoreMongoDBConfig databaseName="oauthSample" user="user1"
 	// password="passwordOfPower" hostname="localhost" port="27017"/>
 	public final static String CONFIG_PID = "customStoreMongoDBConfig";
@@ -61,10 +65,11 @@ public class MongoDBHelper implements ManagedService {
 	public final static String HOST_KEY = "hostname";
 	public final static String PORT_KEY = "port";
 
-	// Loading mongoDB config from a props file
+	// The mongoDB config from a props file. This file originates in SupportFiles/mongoDB.props
+	// and is copied over to the server config folder during the gradlew build.
 	public final static String MONGO_PROPS_FILE = "mongoDB.props";
 
-	// Default config
+	// Default config for mongoDB
 	private String dbName = "oauthSample";
 	private String dbHost = "localhost";
 	private String dbUser = null;
@@ -89,10 +94,17 @@ public class MongoDBHelper implements ManagedService {
 
 	/**
 	 * Simple helper method to get a connection to mongoDB.
-	 * 
-	 * It is not a general recommendation for all CustomStore implementations
+	 * </p>
+	 * It is not a general recommendation for all CustomStore implementations.
+	 * </p>
+	 * The mongoDB properties are used in this order of precedence:
+	 * <ol>
+	 * <li>Configuration set in the server.xml using customStoreMongoDBConfig</li>
+	 * <li>Configuration set in the mongoDB.props file located in the server config directory (wlp/usr/servers/serverName)</li>
+	 * <li>Default values for the database name, host and port (see defaults set in this file).</li>
+	 * </ol>
 	 *
-	 * @return
+	 * @return A connected MongoDatabase reference
 	 */
 	public synchronized MongoDatabase getDB() {
 		if (db == null) {
@@ -134,7 +146,7 @@ public class MongoDBHelper implements ManagedService {
 	/**
 	 * This helper method uses a properties file to get the database connection
 	 * parameters.
-	 * 
+	 * </p>
 	 * It is not a general recommendation for all CustomStore implementations.
 	 * 
 	 */
@@ -161,6 +173,9 @@ public class MongoDBHelper implements ManagedService {
 		}
 	}
 
+	/**
+	 * Close the mongoDB client connection. This can be called by the bundle Activator.
+	 */
 	public synchronized void stopDB() {
 		if (mongoClient != null) {
 			mongoClient.close();
@@ -168,6 +183,11 @@ public class MongoDBHelper implements ManagedService {
 		}
 	}
 
+	/**
+	 * Helper method that defines the mongoDB configuration attribute, which can be
+	 * set in the server.xml.
+	 * @return A Dictionary containing the mongoDB configuration {@link CONFIG_PID}
+	 */
 	public Dictionary<String, String> getDefaults() {
 		Dictionary<String, String> defaults = new Hashtable<String, String>();
 		defaults.put(org.osgi.framework.Constants.SERVICE_PID, CONFIG_PID);
@@ -175,10 +195,12 @@ public class MongoDBHelper implements ManagedService {
 	}
 
 	/**
-	 * Sample config for the server.xml
+	 * This ManagedService method receives configuration from the server.xml for the mongoDB database.
+	 * </p>
+	 * Sample config for the server.xml:
 	 * 
-	 * <customStoreMongoDBConfig databaseName="oauthSample" user="user1" password=
-	 * "passwordOfPower" port="27017"/>
+	 * &lt;customStoreMongoDBConfig databaseName="oauthSample" hostname="localhost" user="user1" password=
+	 * "passwordOfPower" port="27017"/&gt;
 	 */
 	@Override
 	public void updated(Dictionary<String, ?> properties) throws ConfigurationException {
@@ -205,8 +227,8 @@ public class MongoDBHelper implements ManagedService {
 
 			String password = (String) properties.get(PASSWORD_KEY);
 			if (password != null) {
-				LOGGER.log(Level.FINEST, "Found password from the server config");
 				dbPwd = password;
+				LOGGER.log(Level.FINEST, "Found password from the server config (not printing to log)");
 			}
 
 			String port = (String) properties.get(PORT_KEY);
@@ -219,6 +241,8 @@ public class MongoDBHelper implements ManagedService {
 							"Port provided, " + port + ", was not an integer. Using default port " + dbPort);
 				}
 			}
+		} else {
+			LOGGER.log(Level.FINEST, "Received ManagedService updated() call, but the properties map was null.");
 		}
 	}
 
