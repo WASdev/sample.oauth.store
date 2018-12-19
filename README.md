@@ -108,5 +108,5 @@ To use an existing MongoDB instance with the `sample.test` tests instead of the 
 Running with user/password authentication:
    - If authentication is enabled on the mongoDB database, uncomment and set the `USER` and `PWD` fields in the mongoDB.props file.
    - If you will be using the user feature project, edit sample.user.feature/src/liberty/config/server.xml. Add the `user="${user}" password="${password}"` attributes to the `customStoreMongoDBConfig` element.
-   > The testing MongoDB instance that `sample.test` starts up does not have authentication enabled. Setting credentials while "START_MONGODB=true" will result in the tests failing.
+   > The testing MongoDB instance that `sample.test` starts up does not have authentication enabled. Setting credentials while `START_MONGODB=true` will result in the tests failing.
    
