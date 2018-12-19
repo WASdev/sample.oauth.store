@@ -36,20 +36,20 @@ Quick Start
 More Detailed
 =============
 1. Optional: Download, install and start mongoDB if you do not wish to use the testing MongoDB instance. See https://www.mongodb.com/
-   - If installed on Windows, go to the installation location bin directory (Program Files/mongoDB/Server/versionNum)
+   - If installed on Windows, go to the installation location bin directory (example: `Program Files/mongoDB/Server/40`)
    - Start the mongoDB server: mongod.exe
-   - You will need to update the mongo properties files to not start a temporary MongoDB instance. See instructions below.
+   - You will need to update the mongo properties files to not start a temporary MongoDB instance. See instructions below to edit the `SupportFiles/mongoDB.props` file.
 
 1. Bring down the sample projects with git: 
    > git clone https://github.com/WASdev/sample.oauth.store
    
    > cd sample.oauth.store
    
-1. If you started your own mongoDB instance, edit the SupportFiles/mongoDB.props file.
+1. If you started your own mongoDB instance, edit the `SupportFiles/mongoDB.props` file.
    - Change `START_MONGODB=true` to `START_MONGODB=false`
    - Optionally change the `HOST`, `PORT`, or `DBNAME`
    - If you need to add a user and password, uncomment the `USER` and `PWD` lines and fill in your username and password.
-      - If you are using the user feature project, also edit sample.user.feature/src/liberty/config/server.xml. Add the `user="${user}" password="${password}"` attributes to the `customStoreMongoDBConfig` element.
+      - If you are using the user feature project, also edit `sample.user.feature/src/liberty/config/server.xml`. Add the `user="${user}" password="${password}"` attributes to the `customStoreMongoDBConfig` element.
 
 1. To build and start a server running one of the custom OAuthStore samples, run on of the following commands:
 
@@ -107,6 +107,6 @@ To use an existing MongoDB instance with the `sample.test` tests instead of the 
 
 Running with user/password authentication:
    - If authentication is enabled on the mongoDB database, uncomment and set the `USER` and `PWD` fields in the mongoDB.props file.
-   - If you will be using the user feature project, edit sample.user.feature/src/liberty/config/server.xml. Add the `user="${user}" password="${password}"` attributes to the `customStoreMongoDBConfig` element.
+   - If you will be using the user feature project, edit `sample.user.feature/src/liberty/config/server.xml`. Add the `user="${user}" password="${password}"` attributes to the `customStoreMongoDBConfig` element.
    > The testing MongoDB instance that `sample.test` starts up does not have authentication enabled. Setting credentials while `START_MONGODB=true` will result in the tests failing.
    
