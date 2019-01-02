@@ -1,13 +1,20 @@
-
-THIS IS AN UNFINISHED DRAFT
-==========================
-
 sample.oauth.store
 =======================
 
 This sample project provides example implementations of `com.ibm.websphere.security.oauth20.store.OAuthStore` for the WebSphere Liberty profile.
 
-There are two sample custom store projects. The first project, `sample.bell`, contains an implementation that is packaged and loaded into Liberty using the `bells-1.0` feature, while the second project, `sample.user.feature`, contains an implementation that is packaged and loaded into WebSphere Liberty as a user feature. The samples are otherwise functionally equivalent and use a MongoDB database to store the clients, tokens and consents. 
+There are two sample custom store projects. The first project, `sample.bell`, contains an `OAuthStore` implementation that is packaged and loaded into Liberty using the `bells-1.0` feature, while the second project, `sample.user.feature`, contains an `OAuthStore` implementation that is packaged and loaded into WebSphere Liberty as a user feature. The samples are otherwise functionally equivalent and use a MongoDB database to store the clients, tokens and consents.
+
+When deciding whether to use the `bells-1.0` feature or a user feature to load the `OAuthStore` implementation into WebSphere Liberty, it mainly boils down to complexity. Using the `bells-1.0` feature is simpler and mostly requires only creating a JAR with the `OAuthStore` implementation and providing it to WebSphere Liberty in the server.xml file. Creating a user feature is more complex, but allows the usage of custom server.xml configuration to provide the `OAuthStore` implementation any necessary configuration. The `bells-1.0` feature doesn't allow the `OAuthStore` implementation to consume configuration from the server.xml, it would need to consume configuration in some other way if necessary.
+
+Here are some files of note:
+
+* sample.bell
+   * [WebSphere Liberty server.xml](sample.bell/src/liberty/config/server.xml)
+   * [Java ServiceLoader provider-configuration file](sample.bell/src/main/resources/META-INF/services/com.ibm.websphere.security.oauth20.store.OAuthStore)
+* sample.user.feature
+   * [WebSphere Liberty server.xml](sample.user.feature/src/liberty/config/server.xml)
+   * [OSGi service component XML file](sample.user.feature/src/main/resources/OSGI-INF/security.custom.store.xml)
 
 Quick Start
 ===========
@@ -16,7 +23,7 @@ Quick Start
    
    > cd sample.oauth.store
 
-1. Start WebSphere Liberty in either the `sample.bell` or `sample.user.feature` projects. This command will build the required libraries and install them into the WebSphere Liberty instance and then start a WebSphere Liberty server that is configured with the OAuthStore implementation.
+1. Start the WebSphere Liberty server for one of the `sample.bell` or `sample.user.feature` projects. This command will build the required libraries and install them into the WebSphere Liberty instance and then start a WebSphere Liberty server that is configured with the OAuthStore implementation.
    > ./gradlew sample.bell:start
    
    OR
@@ -51,7 +58,7 @@ More Detailed
    - If you need to add a user and password, uncomment the `USER` and `PWD` lines and fill in your username and password.
       - If you are using the user feature project, also edit `sample.user.feature/src/liberty/config/server.xml`. Add the `user="${user}" password="${password}"` attributes to the `customStoreMongoDBConfig` element.
 
-1. To build and start a server running one of the custom OAuthStore samples, run on of the following commands:
+1. To build and start a server running one of the custom OAuthStore samples, run one of the following commands:
 
     > ./gradlew sample.bell:start
 
