@@ -28,7 +28,7 @@ Quick Start
    
    OR
    
-   > ./gradlew sample.user.feature.start
+   > ./gradlew sample.user.feature:start
 
 1. Run the functional tests in the `sample.test` project. These tests will download and start up a MongoDB instance and run the tests against the running WebSphere Liberty server.
    > ./gradlew sample.test:test
